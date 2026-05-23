@@ -22,9 +22,9 @@ export default function Toolbar({
   return (
     <div className="glass-panel rounded-2xl p-6 mb-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
       {/* Filters & Search */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 flex-1 max-w-5xl">
+      <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-4 flex-1">
         {/* Search Input */}
-        <div className="relative flex-1 min-w-[240px]">
+        <div className="relative flex-1 min-w-[240px] max-w-md">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
             type="text"
@@ -36,7 +36,7 @@ export default function Toolbar({
         </div>
 
         {/* Dropdowns */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap xl:flex-nowrap items-center gap-3">
           <div className="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wider font-semibold w-full sm:w-auto">
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>Filters:</span>

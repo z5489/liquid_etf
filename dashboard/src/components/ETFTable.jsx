@@ -62,17 +62,17 @@ export default function ETFTable({
 
   return (
     <div className="glass-panel rounded-2xl overflow-hidden shadow-2xl border border-slate-800">
-      <div className="overflow-x-auto">
+      <div className="overflow-auto max-h-[70vh]">
         <table className="min-w-[1100px] w-full text-left border-collapse table-auto">
-          <thead>
-            <tr className="bg-slate-900/80 border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+          <thead className="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-sm shadow-md">
+            <tr className="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
               {headers.map((h) => (
                 <th
                   key={h.key}
                   onClick={() => onSort(h.key)}
-                  className={`px-4 py-3.5 cursor-pointer hover:bg-slate-800/50 hover:text-slate-200 transition-colors select-none whitespace-nowrap ${
+                  className={`px-4 py-3.5 cursor-pointer hover:bg-slate-800 hover:text-slate-200 transition-colors select-none whitespace-nowrap ${
                     h.align === 'right' ? 'text-right' : h.align === 'center' ? 'text-center' : 'text-left'
-                  } ${h.key === 'Ticker' ? 'sticky left-0 z-20 bg-slate-900/95 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]' : ''}`}
+                  } ${h.key === 'Ticker' ? 'sticky left-0 z-40 bg-slate-900 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]' : ''}`}
                 >
                   <span className="inline-flex items-center">
                     {h.label}

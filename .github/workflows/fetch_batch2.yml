@@ -2,7 +2,7 @@ name: Fetch ETF Data - Batch 2
 
 on:
   schedule:
-    - cron: '15 21 * * 1-5' # 21:15 UTC weekdays
+    - cron: '20 21 * * 1-5' # 21:15 UTC weekdays
   workflow_dispatch:      # Allow manual runs for testing
 
 permissions:

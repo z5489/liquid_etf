@@ -237,7 +237,7 @@ export default function App() {
                 </span>
               </div>
               <p className="text-slate-400 text-xs mt-1 sm:text-sm">
-                Daily momentum screening for high performance ETFs using custom math criteria.
+                Daily momentum screening for liquid ETFs.
               </p>
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function App() {
         {/* Footer */}
         <footer className="mt-12 border-t border-slate-900 pt-6 text-center text-xs text-slate-500">
           <p>
-            ETF Momentum Tracker &bull; Built with React, Tailwind CSS, & SheetJS
+            ETF Momentum Tracker
           </p>
         </footer>
 

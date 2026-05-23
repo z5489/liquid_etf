@@ -15,7 +15,7 @@ export default function App() {
   const [selectedAssetClass, setSelectedAssetClass] = useState('All');
   const [selectedLeverage, setSelectedLeverage] = useState('All');
   const [selectedFocus, setSelectedFocus] = useState('All');
-  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedStatus, setSelectedStatus] = useState('Passed');
   const [sortColumn, setSortColumn] = useState('Change%'); // default sort
   const [sortDirection, setSortDirection] = useState('desc'); // default direction
 

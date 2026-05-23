@@ -72,7 +72,7 @@ export default function ETFTable({
                   onClick={() => onSort(h.key)}
                   className={`px-4 py-3.5 cursor-pointer hover:bg-slate-800/50 hover:text-slate-200 transition-colors select-none whitespace-nowrap ${
                     h.align === 'right' ? 'text-right' : h.align === 'center' ? 'text-center' : 'text-left'
-                  }`}
+                  } ${h.key === 'Ticker' ? 'sticky left-0 z-20 bg-slate-900/95 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]' : ''}`}
                 >
                   <span className="inline-flex items-center">
                     {h.label}
@@ -97,7 +97,7 @@ export default function ETFTable({
                   className="hover:bg-slate-800/30 cursor-pointer transition-all duration-150 border-b border-slate-900 group"
                 >
                   {/* Ticker */}
-                  <td className="px-4 py-3.5 text-left font-bold text-indigo-400 group-hover:text-indigo-300 transition-colors text-sm whitespace-nowrap">
+                  <td className="px-4 py-3.5 text-left font-bold text-indigo-400 group-hover:text-indigo-300 transition-colors text-sm whitespace-nowrap sticky left-0 z-10 bg-slate-900 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)] group-hover:bg-slate-800/50">
                     {etf.Ticker}
                   </td>
 

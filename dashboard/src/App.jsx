@@ -228,7 +228,7 @@ export default function App() {
               <Activity className="w-7 h-7 text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
                   ETF Momentum Tracker
                 </h1>

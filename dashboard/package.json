@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node -e \"const fs=require('fs'); fs.mkdirSync('public/data', {recursive: true}); fs.copyFileSync('../data/etf_momentum.csv', 'public/data/etf_momentum.csv');\" && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

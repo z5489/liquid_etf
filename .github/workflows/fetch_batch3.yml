@@ -1,0 +1,37 @@
+name: Fetch ETF Data - Batch 3
+
+on:
+  schedule:
+    - cron: '30 21 * * 1-5' # 21:30 UTC weekdays
+  workflow_dispatch:      # Allow manual runs for testing
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-batch3:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install yfinance pandas openpyxl
+
+      - name: Run Fetch Batch 3
+        run: python scripts/fetch_etf_data.py --batch 3
+
+      - name: Commit and push Excel data
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/etf_momentum.csv
+          git diff-index --quiet HEAD || (git commit -m "Update ETF momentum data (Batch 3)" && git pull --rebase && git push)

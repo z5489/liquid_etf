@@ -115,7 +115,7 @@ export default function ETFTable({
                   </td>
                   
                   {/* Name */}
-                  <td className="px-2.5 py-3 text-left text-slate-300 font-medium max-w-[160px] lg:max-w-[200px] truncate text-sm whitespace-nowrap" title={etf.Name}>
+                  <td className="px-2.5 py-3 text-left text-slate-300 font-medium min-w-[160px] max-w-[220px] whitespace-normal sm:whitespace-nowrap sm:truncate text-sm leading-tight" title={etf.Name}>
                     {etf.Name}
                   </td>
 

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Search, RefreshCw, Download, SlidersHorizontal } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, RefreshCw, Download, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function Toolbar({
   searchQuery,
@@ -19,25 +19,38 @@ export default function Toolbar({
   onExport,
   isRefreshing
 }) {
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
   return (
-    <div className="glass-panel rounded-2xl p-6 mb-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="glass-panel rounded-2xl p-6 mb-6 shadow-xl flex flex-col md:flex-row md:items-start lg:items-center justify-between gap-4">
       {/* Filters & Search */}
       <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-4 flex-1">
-        {/* Search Input */}
-        <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search by Ticker or Name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm"
-          />
+        <div className="flex items-center gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1 min-w-[200px] max-w-md">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search by Ticker or Name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-sm"
+            />
+          </div>
+          
+          {/* Mobile Toggle Button */}
+          <button 
+            onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+            className="xl:hidden flex items-center justify-center p-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-400 hover:text-indigo-400 hover:border-indigo-500/50 transition-all"
+            title="Toggle Filters"
+          >
+            <SlidersHorizontal className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Dropdowns */}
-        <div className="flex flex-wrap xl:flex-nowrap items-center gap-3">
-          <div className="flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wider font-semibold w-full sm:w-auto">
+        <div className={`${isFiltersOpen ? 'flex' : 'hidden'} xl:flex flex-col sm:flex-row flex-wrap xl:flex-nowrap items-stretch sm:items-center gap-3`}>
+          <div className="hidden sm:flex items-center gap-2 text-slate-400 text-xs uppercase tracking-wider font-semibold">
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span>Filters:</span>
           </div>

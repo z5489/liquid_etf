@@ -30,7 +30,7 @@ export default function BubbleCanvas({ data }) {
     const maxVol = d3.max(nodes, d => d.dollarVolume) || 1;
     const radiusScale = d3.scaleSqrt()
       .domain([minVol, maxVol])
-      .range([24, 76]);
+      .range([18, 56]);
 
     // Attach radius to each node
     nodes.forEach(d => {
@@ -53,13 +53,13 @@ export default function BubbleCanvas({ data }) {
       .force('x', d3.forceX(d => {
         const centroid = categoryCentroids[d.category] || categoryCentroids['Consumer & Others'];
         return centroid.x;
-      }).strength(0.12))
+      }).strength(0.15))
       .force('y', d3.forceY(d => {
         const centroid = categoryCentroids[d.category] || categoryCentroids['Consumer & Others'];
         return centroid.y;
-      }).strength(0.12))
-      .force('charge', d3.forceManyBody().strength(-12))
-      .force('collision', d3.forceCollide(d => d.r + 4))
+      }).strength(0.15))
+      .force('charge', d3.forceManyBody().strength(-10))
+      .force('collision', d3.forceCollide(d => d.r + 2))
       .alpha(1)
       .restart();
 
@@ -112,21 +112,21 @@ export default function BubbleCanvas({ data }) {
 
     // Add Ticker label (Line 1)
     nodeSelection.append('text')
-      .attr('dy', d => d.r >= 45 ? '-12' : d.r >= 32 ? '-4' : '3')
+      .attr('dy', d => d.r >= 38 ? '-10' : d.r >= 28 ? '-2' : '3')
       .attr('text-anchor', 'middle')
       .attr('fill', 'white')
-      .attr('font-size', d => d.r >= 45 ? '13px' : '10px')
+      .attr('font-size', d => d.r >= 38 ? '12px' : '9px')
       .attr('font-weight', '900') // extra bold for ticker
       .attr('pointer-events', 'none')
       .text(d => d.ticker);
 
     // Add Keyword sub-label (Line 2)
-    nodeSelection.filter(d => d.r >= 32)
+    nodeSelection.filter(d => d.r >= 28)
       .append('text')
-      .attr('dy', d => d.r >= 45 ? '2' : '8')
+      .attr('dy', d => d.r >= 38 ? '2' : '8')
       .attr('text-anchor', 'middle')
       .attr('fill', '#cbd5e1')
-      .attr('font-size', d => d.r >= 45 ? '9px' : '8px')
+      .attr('font-size', d => d.r >= 38 ? '8.5px' : '7.5px')
       .attr('font-weight', '500')
       .attr('pointer-events', 'none')
       .text(d => {
@@ -138,20 +138,20 @@ export default function BubbleCanvas({ data }) {
       });
 
     // Add Change % label (Line 3)
-    nodeSelection.filter(d => d.r >= 45)
+    nodeSelection.filter(d => d.r >= 38)
       .append('text')
-      .attr('dy', '14')
+      .attr('dy', '12')
       .attr('text-anchor', 'middle')
       .attr('fill', '#f8fafc')
-      .attr('font-size', '9px')
+      .attr('font-size', '8.5px')
       .attr('font-weight', '700')
       .attr('pointer-events', 'none')
       .text(d => `${d.changePct > 0 ? '+' : ''}${d.changePct.toFixed(2)}%`);
 
     // Add Volume label (Line 4)
-    nodeSelection.filter(d => d.r >= 60)
+    nodeSelection.filter(d => d.r >= 48)
       .append('text')
-      .attr('dy', '24')
+      .attr('dy', '22')
       .attr('text-anchor', 'middle')
       .attr('fill', '#94a3b8')
       .attr('font-size', '8px')
@@ -162,9 +162,20 @@ export default function BubbleCanvas({ data }) {
     // Update positions during ticks
     simulation.on('tick', () => {
       nodeSelection.attr('transform', d => {
-        // Constrain to boundary quadrants
-        d.x = Math.max(d.r + 15, Math.min(width - d.r - 15, d.x));
-        d.y = Math.max(d.r + 15, Math.min(height - d.r - 15, d.y));
+        // Enforce strict quadrant boundaries
+        let xMin = 10, xMax = 470, yMin = 10, yMax = 270;
+        if (d.category === 'Financials & Macro') {
+          xMin = 490; xMax = 950;
+        } else if (d.category === 'Energy & Industrials') {
+          yMin = 290; yMax = 550;
+        } else if (d.category === 'Consumer & Others') {
+          xMin = 490; xMax = 950;
+          yMin = 290; yMax = 550;
+        }
+
+        const padding = 6;
+        d.x = Math.max(xMin + d.r + padding, Math.min(xMax - d.r - padding, d.x));
+        d.y = Math.max(yMin + d.r + padding, Math.min(yMax - d.r - padding, d.y));
         return `translate(${d.x}, ${d.y})`;
       });
     });

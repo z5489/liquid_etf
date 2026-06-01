@@ -256,7 +256,7 @@ export const tickerToKeyword = {
   'ONDS': 'Ondas Inc.',
   'OPEN': 'Opendoor',
   'ORCL': 'Oracle',
-  'ORLY': 'O'Reilly Automotive',
+  'ORLY': 'O\'Reilly Automotive',
   'OSCR': 'Oscar Health',
   'OUNZ': 'Vaneck Merk Gold',
   'PAAS': 'Pan American Silver',

@@ -409,7 +409,8 @@ with open('scripts/categories_generated.js', 'w', encoding='utf-8') as f_out:
     f_out.write("export const tickerToKeyword = {\n")
     f_out.write("  // Underlying stocks (Extracted from single asset ETFs)\n")
     for tick in sorted(underlying_info.keys()):
-        f_out.write(f"  '{tick}': '{underlying_info[tick]['name']}',\n")
+        safe_name = underlying_info[tick]['name'].replace("'", "\\'")
+        f_out.write(f"  '{tick}': '{safe_name}',\n")
     
     f_out.write("\n  // Broad Index / Sector ETFs (Manual mappings)\n")
     f_out.write("  'SMH': 'Semiconductors',\n")

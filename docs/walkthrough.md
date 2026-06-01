@@ -21,16 +21,25 @@ We have successfully added the capability to load/toggle historical screening da
 
 ### 4. D3 Ticker Bubble Chart Panel
 - Implemented a concentration bubble map under `dashboard/src/components/BubbleChartPanel/`:
-  - **Stock Ticker Aggregation**: Resolved single-stock leveraged ETFs (such as `MUU` for MU, `NVDL`/`NVDY` for NVDA, `TSLL` for TSLA, `CORZ`, `PANW`, `ACHR`, `TSM`, `UUUU`) to their underlying stock ticker.
+  - **Collapsible UI Panel**: Added a collapse state (defaulting to collapsed) with a premium toggle button in the header. Expanding mounts the D3 canvas and starts the force simulation with a smooth entrance animation, saving initial load CPU and space.
+  - **Stock Ticker Aggregation**: Resolved single-stock leveraged/derivative ETFs to their underlying stock ticker. Built an automated Python parser (`scripts/generate_js_config.py`) to scan `data/etf_momentum.csv`, resolve ticker mappings, and dynamically generate `categories.config.js`.
   - **Capital Letter Ticker Parsing**: Created a dynamic uppercase word search parser in [useBubbleData.js](file:///c:/Users/ziyen/liquid_etf/dashboard/src/components/BubbleChartPanel/useBubbleData.js). It scans the ETF's Name for 2-5 consecutive uppercase letters (e.g. `TSM` in `"Direxion Daily TSM Bull 2X ETF"`, or `PANW` in `"Yieldmax PANW Option..."`), filters out common uppercase financial words (like `ETF`, `USD`, `INC`, `PLC`, etc.), and extracts the stock ticker automatically.
-  - **Sizing**: Circle radius is scaled to the aggregated ticker's `DollarVolume` (minimum 24px, maximum 76px) using `d3.scaleSqrt` to maintain proportional area.
+  - **Comprehensive Mapping Coverage**: Resolved previously unmapped tickers to their clean names and correct quadrants:
+    - **Cerebras Systems (`CBRS`)**: AI chipmaker mapped to **Technology**.
+    - **Webull (`BULL`)**: Retail brokerage mapped to **Financials & Macro**.
+    - **Block (`XYZ`)**: Square/Cash App fintech mapped to **Financials & Macro**.
+    - **AST SpaceMobile (`ASTS`)**: Satellite telecom mapped to **Technology**.
+    - **Rocket Lab (`RKLB`)**, **Redwire (`RDW`)**, **Intuitive Machines (`LUNR`)**: Mapped to **Energy & Industrials**.
+    - **Palantir (`PLTR`)**, **Marvell (`MRVL`)**, **ServiceNow (`NOW`)**, **Arm (`ARM`)**: Properly mapped to **Technology** instead of falling back to default categories.
+    - Cleaned up raw dynamic names (e.g. `Aal Daily` -> `American Airlines`, `Abnb` -> `Airbnb`, etc.) via a comprehensive mapping dictionary.
+  - **Strict Quadrant Boundaries Constraint**: Modified the D3 simulation ticks to enforce strict boundary containment coordinates for each category quadrant. Bubbles are constrained to stay within their respective 460x260 bounding box quadrants, entirely preventing overflow or mixing between sectors.
+  - **Optimized Sizing**: Scale circles to `DollarVolume` with an optimized radius range `[18, 56]` (minimum 18px, maximum 56px) and reduced collision padding `+2`. This ensures that even in highly concentrated sectors (like Technology), all bubbles fit perfectly and float elegantly within their respective quadrants without overlap or congestion.
   - **Coloring**: Diverging color interpolation between deep red (`#f43f5e`), neutral gray (`#334155`), and green (`#10b981`) represents the weighted average `% Change`.
-  - **D3 Simulation**: Nodes repel each other and are attracted to their category quadrant centroids (Technology, Financials & Macro, Energy & Industrials, Consumer & Others).
-  - **Label Density**: Text labels are automatically adapted to circle radius:
-    - Small (`r < 32`): Ticker only (e.g. `MU`).
-    - Medium (`32 <= r < 45`): Ticker + keyword Focus sub-label (e.g. `MU` / `Micron Technology`).
-    - Large (`45 <= r < 60`): Ticker + keyword + Change % (e.g. `NVDA` / `NVIDIA` / `+15.41%`).
-    - Extra-large (`r >= 60`): Adds the Dollar Volume line (e.g. `$2.4B`).
+  - **Label Density**: Text labels adapt dynamically to circle radius for readability:
+    - Small (`r < 28`): Ticker only (e.g. `MU`).
+    - Medium (`28 <= r < 38`): Ticker + keyword Focus sub-label (e.g. `MU` / `Micron Technology`).
+    - Large (`38 <= r < 48`): Ticker + keyword + Change % (e.g. `NVDA` / `NVIDIA` / `+15.41%`).
+    - Extra-large (`r >= 48`): Adds the Dollar Volume line (e.g. `$2.4B`).
   - **Stats Tooltip**: Floating absolute-positioned card shows the underlying stock ticker, full ETF Name, Focus keyword, Category, AUM, Volume, Change %, and a list of all contributing ETFs (e.g. `MUU`).
 
 ### 5. GitHub Workflows

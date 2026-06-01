@@ -1,62 +1,43 @@
-# Walkthrough - Historical Date Selection
+# Walkthrough - Historical Date Selection & Ticker Bubble Chart
 
-We have successfully added the capability to load and toggle historical screening data on the dashboard. The application now automatically defaults to the last available business day from the dates index.
+We have successfully added the capability to load/toggle historical screening data and visualize individual ETF concentration map using a D3 force-directed bubble chart.
 
 ## Key Changes
 
 ### 1. Data Fetching & Indexing
 - Modified `scripts/fetch_etf_data.py`:
-  - When new ETF screening data is fetched, the script writes a copy to `data/etf_momentum_YYYY-MM-DD.csv` in addition to `data/etf_momentum.csv`.
-  - The script scans the `data/` directory for all date-stamped CSVs and updates `data/available_dates.json` containing the sorted array of date strings.
+  - Saves a date-stamped copy to `data/etf_momentum_YYYY-MM-DD.csv` in addition to the main `data/etf_momentum.csv`.
+  - Re-scans `data/` and updates `data/available_dates.json` with the sorted list of available date strings.
 
 ### 2. Frontend Configuration
 - Updated `dashboard/package.json`:
-  - The `dev` and `build` scripts were updated to automatically copy all `.csv` and `.json` files from `../data/` to `public/data/` so they are accessible by Vite.
+  - Modified `dev` and `build` scripts to automatically copy all `.csv` and `.json` files from `../data/` to `public/data/` before serving.
 
-### 3. Dashboard UI
+### 3. Dashboard UI & Date Selection
 - Updated `dashboard/src/App.jsx`:
-  - The dashboard now reads `/data/available_dates.json` on page load to find all available historical dates.
-  - The default state loads the first item in the list (the latest business day, e.g. `2026-06-01`).
-   - Added a beautifully formatted Glassmorphic date selector dropdown in the header next to the "Last Updated" display. When a date is selected, the application dynamically updates the CSV URL and re-fetches the dataset.
-  - Set the default sorting column of the ETF table to **Dollar Volume** (`DollarVolume`).
+  - Loads available dates on page mount and defaults to the most recent date in the index (the last business day).
+  - Features a custom Glassmorphic dropdown in the header next to "Last Updated" to switch historical dates dynamically.
+  - Defaults the grid sorting column to **Dollar Volume** (`DollarVolume`).
 
-### 4. GitHub Workflows
+### 4. D3 Ticker Bubble Chart Panel
+- Implemented a concentration bubble map under `dashboard/src/components/BubbleChartPanel/`:
+  - **Ticker Bubbles**: Instead of grouping by keyword, each individual ETF is rendered as its own bubble.
+  - **Sizing**: Circle radius is scaled to the ETF's `DollarVolume` (minimum 24px, maximum 76px) using `d3.scaleSqrt` to maintain proportional area.
+  - **Coloring**: Diverging color interpolation between deep red (`#f43f5e`), neutral gray (`#334155`), and green (`#10b981`) represents the ETF's `% Change`.
+  - **D3 Simulation**: Nodes repel each other and are attracted to their category quadrant centroids (Technology, Financials & Macro, Energy & Industrials, Consumer & Others).
+  - **Label Density**: Text labels are automatically adapted to circle radius:
+    - Small (`r < 32`): Ticker only (e.g. `SMH`).
+    - Medium (`32 <= r < 45`): Ticker + keyword Focus sub-label (e.g. `SMH` / `Semiconductors`).
+    - Large (`45 <= r < 60`): Ticker + keyword + Change % (e.g. `NVDA` / `NVIDIA` / `+15.41%`).
+    - Extra-large (`r >= 60`): Adds the Dollar Volume line (e.g. `$2.4B`).
+  - **Stats Tooltip**: Floating absolute-positioned card shows full ETF Name, Ticker, Focus keyword, Category, AUM, Volume, and Change %.
+
+### 5. GitHub Workflows
 - Updated `fetch_batch1.yml`, `fetch_batch2.yml`, and `fetch_batch3.yml` to stage the new date-stamped files and the `available_dates.json` index:
   ```yaml
   git add data/etf_momentum.csv data/etf_momentum_*.csv data/available_dates.json
   ```
 
 ## Verification
-
-### 1. Build Verification
-Running `npm run build` inside `dashboard/` completes successfully and copies:
-- `available_dates.json`
-- `etf_momentum.csv`
-- `etf_momentum_2026-05-23.csv`
-- `etf_momentum_2026-06-01.csv`
-
-### 2. Running Locally
-When running the development server (`npm run dev`), the files are copied and loaded correctly. Since the dates array contains `["2026-06-01", "2026-05-23"]`, the UI:
-- Defaults to loading the June 1st dataset.
-- Defaults to sorting the ETF grid by **Dollar Volume** (descending).
-- Allows the user to select the May 23rd dataset from the dropdown, which updates the "Last Updated" metadata.
-
----
-
-# Bubble Chart Panel Implementation
-
-We have successfully integrated the **Sector & Holding Concentration Map** (D3 force-directed bubble chart) into the dashboard as specified by the bubble chart architecture document.
-
-## Architecture & Layout
-- The new components are organized cleanly under `dashboard/src/components/BubbleChartPanel/`:
-  - [categories.config.js](file:///c:/Users/ziyen/liquid_etf/dashboard/src/components/BubbleChartPanel/categories.config.js): Handles mapping lookup and quadrant centroids coordinate layout.
-  - [useBubbleData.js](file:///c:/Users/ziyen/liquid_etf/dashboard/src/components/BubbleChartPanel/useBubbleData.js): Aggregates dollar volumes and calculates weighted price change per keyword. Falls back to metadata categories for unmapped tickers.
-  - [BubbleCanvas.jsx](file:///c:/Users/ziyen/liquid_etf/dashboard/src/components/BubbleChartPanel/BubbleCanvas.jsx): Integrates D3 force simulations (`forceCollide`, centroids force attraction, repulsion) with SVG boundaries and hover handlers.
-  - [Tooltip.jsx](file:///c:/Users/ziyen/liquid_etf/dashboard/src/components/BubbleChartPanel/Tooltip.jsx): Custom HTML/Tailwind floating tooltip.
-  - [Legend.jsx](file:///c:/Users/ziyen/liquid_etf/dashboard/src/components/BubbleChartPanel/Legend.jsx): Visualizes average price change color scale.
-  - [index.jsx](file:///c:/Users/ziyen/liquid_etf/dashboard/src/components/BubbleChartPanel/index.jsx): Entry point panel layout.
-
-## Verification
-- Running `npm run build` completes successfully, verifying bundling size and dependency resolution for `d3`.
-- In the browser, the bubbles are grouped into 4 quadrant groups based on technology, financials & macro, energy & industrials, or consumer & others, separated by thin dashed rectangles with sector titles.
-- Toggling search keywords or filters causes the D3 simulation to smoothly regroup and animate the circles in real-time.
+- Bundling and client compiling completes successfully.
+- Changing search filters or selecting different historical dates triggers reactive animations as bubbles rearrange and scale dynamically.

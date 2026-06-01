@@ -110,38 +110,48 @@ export default function BubbleCanvas({ data }) {
           .attr('stroke-width', '1.5px');
       });
 
-    // Add keyword text label
+    // Add Ticker label (Line 1)
     nodeSelection.append('text')
-      .attr('dy', d => d.r >= 38 ? '-5' : '4')
+      .attr('dy', d => d.r >= 45 ? '-12' : d.r >= 32 ? '-4' : '3')
       .attr('text-anchor', 'middle')
       .attr('fill', 'white')
-      .attr('font-size', d => d.r >= 52 ? '11px' : '9px')
-      .attr('font-weight', '700')
+      .attr('font-size', d => d.r >= 45 ? '13px' : '10px')
+      .attr('font-weight', '900') // extra bold for ticker
+      .attr('pointer-events', 'none')
+      .text(d => d.ticker);
+
+    // Add Keyword sub-label (Line 2)
+    nodeSelection.filter(d => d.r >= 32)
+      .append('text')
+      .attr('dy', d => d.r >= 45 ? '2' : '8')
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#cbd5e1')
+      .attr('font-size', d => d.r >= 45 ? '9px' : '8px')
+      .attr('font-weight', '500')
       .attr('pointer-events', 'none')
       .text(d => {
-        // Truncate if keyword exceeds space in circle
-        const maxChars = Math.max(5, Math.floor(d.r / 4));
+        const maxChars = Math.max(5, Math.floor(d.r / 3.5));
         if (d.keyword.length > maxChars) {
           return d.keyword.substring(0, maxChars - 1) + '..';
         }
         return d.keyword;
       });
 
-    // Add change % text label
-    nodeSelection.filter(d => d.r >= 38)
+    // Add Change % label (Line 3)
+    nodeSelection.filter(d => d.r >= 45)
       .append('text')
-      .attr('dy', '8')
+      .attr('dy', '14')
       .attr('text-anchor', 'middle')
-      .attr('fill', '#f1f5f9')
+      .attr('fill', '#f8fafc')
       .attr('font-size', '9px')
-      .attr('font-weight', '600')
+      .attr('font-weight', '700')
       .attr('pointer-events', 'none')
       .text(d => `${d.changePct > 0 ? '+' : ''}${d.changePct.toFixed(2)}%`);
 
-    // Add volume text label
-    nodeSelection.filter(d => d.r >= 54)
+    // Add Volume label (Line 4)
+    nodeSelection.filter(d => d.r >= 60)
       .append('text')
-      .attr('dy', '20')
+      .attr('dy', '24')
       .attr('text-anchor', 'middle')
       .attr('fill', '#94a3b8')
       .attr('font-size', '8px')

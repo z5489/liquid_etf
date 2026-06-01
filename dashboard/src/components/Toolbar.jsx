@@ -59,11 +59,17 @@ export default function Toolbar({
           <select
             value={selectedAssetClass}
             onChange={(e) => setSelectedAssetClass(e.target.value)}
-            className="px-3 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-all cursor-pointer appearance-none pr-9 shadow-sm"
+            style={{
+              backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23818cf8' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`,
+              backgroundPosition: 'right 12px center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: '11px',
+            }}
           >
             <option value="All">All Asset Classes</option>
             {assetClasses.map((ac) => (
-              <option key={ac} value={ac}>
+              <option key={ac} value={ac} className="bg-slate-950 text-slate-200">
                 {ac}
               </option>
             ))}
@@ -73,11 +79,17 @@ export default function Toolbar({
           <select
             value={selectedLeverage}
             onChange={(e) => setSelectedLeverage(e.target.value)}
-            className="px-3 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-all cursor-pointer appearance-none pr-9 shadow-sm"
+            style={{
+              backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23818cf8' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`,
+              backgroundPosition: 'right 12px center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: '11px',
+            }}
           >
             <option value="All">All Leverages</option>
             {leverageOptions.map((lev) => (
-              <option key={lev} value={lev}>
+              <option key={lev} value={lev} className="bg-slate-950 text-slate-200">
                 {lev}
               </option>
             ))}
@@ -87,11 +99,17 @@ export default function Toolbar({
           <select
             value={selectedFocus}
             onChange={(e) => setSelectedFocus(e.target.value)}
-            className="px-3 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-all cursor-pointer appearance-none pr-9 shadow-sm"
+            style={{
+              backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23818cf8' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`,
+              backgroundPosition: 'right 12px center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: '11px',
+            }}
           >
             <option value="All">All Focuses</option>
             {focusOptions.map((f) => (
-              <option key={f} value={f}>
+              <option key={f} value={f} className="bg-slate-950 text-slate-200">
                 {f}
               </option>
             ))}
@@ -101,11 +119,17 @@ export default function Toolbar({
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-xl text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-all cursor-pointer appearance-none pr-9 shadow-sm"
+            style={{
+              backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23818cf8' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`,
+              backgroundPosition: 'right 12px center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: '11px',
+            }}
           >
-            <option value="All">All Statuses</option>
-            <option value="Passed">Passed</option>
-            <option value="Failed">No Match</option>
+            <option value="All" className="bg-slate-950 text-slate-200">All Statuses</option>
+            <option value="Passed" className="bg-slate-950 text-slate-200">Passed</option>
+            <option value="Failed" className="bg-slate-950 text-slate-200">No Match</option>
           </select>
         </div>
       </div>

@@ -1,23 +1,137 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import { categoryCentroids } from './categories.config';
 import Tooltip from './Tooltip';
 
 export default function BubbleCanvas({ data }) {
+  const containerRef = useRef(null);
   const svgRef = useRef(null);
   const [hoveredNode, setHoveredNode] = useState(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0, showBelow: false });
+  const [dimensions, setDimensions] = useState({ width: 960, height: 560, isMobile: false });
 
-  const width = 960;
-  const height = 560;
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-  // SVG Quadrants boundaries outline
-  const boundaries = [
-    { x: 10, y: 10, w: 460, h: 260, label: 'Technology', labelX: 25, labelY: 32, color: 'stroke-indigo-500/15 fill-indigo-500/[0.01]', textColor: 'fill-indigo-400' },
-    { x: 490, y: 10, w: 460, h: 260, label: 'Financials & Macro', labelX: 505, labelY: 32, color: 'stroke-purple-500/15 fill-purple-500/[0.01]', textColor: 'fill-purple-400' },
-    { x: 10, y: 290, w: 460, h: 260, label: 'Energy & Industrials', labelX: 25, labelY: 312, color: 'stroke-emerald-500/15 fill-emerald-500/[0.01]', textColor: 'fill-emerald-400' },
-    { x: 490, y: 290, w: 460, h: 260, label: 'Consumer & Others', labelX: 505, labelY: 312, color: 'stroke-amber-500/15 fill-amber-500/[0.01]', textColor: 'fill-amber-400' }
-  ];
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const containerWidth = entry.contentRect.width;
+        const isMobile = containerWidth < 800;
+        if (isMobile) {
+          setDimensions({
+            width: containerWidth,
+            height: 1040, // 4 quadrants * 240px + 3 gaps * 16px + 20px padding
+            isMobile: true
+          });
+        } else {
+          setDimensions({
+            width: Math.min(960, containerWidth),
+            height: 560,
+            isMobile: false
+          });
+        }
+      }
+    });
+
+    resizeObserver.observe(containerRef.current);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  const { width, height, isMobile } = dimensions;
+
+  // Dynamic SVG boundaries outline
+  const boundaries = !isMobile
+    ? [
+        {
+          x: 10,
+          y: 10,
+          w: width / 2 - 20,
+          h: height / 2 - 20,
+          label: 'Technology',
+          labelX: 25,
+          labelY: 32,
+          color: 'stroke-indigo-500/15 fill-indigo-500/[0.01]',
+          textColor: 'fill-indigo-400'
+        },
+        {
+          x: width / 2 + 10,
+          y: 10,
+          w: width / 2 - 20,
+          h: height / 2 - 20,
+          label: 'Financials & Macro',
+          labelX: width / 2 + 25,
+          labelY: 32,
+          color: 'stroke-purple-500/15 fill-purple-500/[0.01]',
+          textColor: 'fill-purple-400'
+        },
+        {
+          x: 10,
+          y: height / 2 + 10,
+          w: width / 2 - 20,
+          h: height / 2 - 20,
+          label: 'Energy & Industrials',
+          labelX: 25,
+          labelY: height / 2 + 32,
+          color: 'stroke-emerald-500/15 fill-emerald-500/[0.01]',
+          textColor: 'fill-emerald-400'
+        },
+        {
+          x: width / 2 + 10,
+          y: height / 2 + 10,
+          w: width / 2 - 20,
+          h: height / 2 - 20,
+          label: 'Consumer & Others',
+          labelX: width / 2 + 25,
+          labelY: height / 2 + 32,
+          color: 'stroke-amber-500/15 fill-amber-500/[0.01]',
+          textColor: 'fill-amber-400'
+        }
+      ]
+    : [
+        {
+          x: 10,
+          y: 10,
+          w: width - 20,
+          h: 240,
+          label: 'Technology',
+          labelX: 25,
+          labelY: 32,
+          color: 'stroke-indigo-500/15 fill-indigo-500/[0.01]',
+          textColor: 'fill-indigo-400'
+        },
+        {
+          x: 10,
+          y: 266,
+          w: width - 20,
+          h: 240,
+          label: 'Financials & Macro',
+          labelX: 25,
+          labelY: 288,
+          color: 'stroke-purple-500/15 fill-purple-500/[0.01]',
+          textColor: 'fill-purple-400'
+        },
+        {
+          x: 10,
+          y: 522,
+          w: width - 20,
+          h: 240,
+          label: 'Energy & Industrials',
+          labelX: 25,
+          labelY: 544,
+          color: 'stroke-emerald-500/15 fill-emerald-500/[0.01]',
+          textColor: 'fill-emerald-400'
+        },
+        {
+          x: 10,
+          y: 778,
+          w: width - 20,
+          h: 240,
+          label: 'Consumer & Others',
+          labelX: 25,
+          labelY: 800,
+          color: 'stroke-amber-500/15 fill-amber-500/[0.01]',
+          textColor: 'fill-amber-400'
+        }
+      ];
 
   useEffect(() => {
     if (!data || data.length === 0) return;
@@ -32,9 +146,24 @@ export default function BubbleCanvas({ data }) {
       .domain([minVol, maxVol])
       .range([18, 56]);
 
-    // Attach radius to each node
+    // Attach radius and initial coordinates to each node
     nodes.forEach(d => {
       d.r = radiusScale(d.dollarVolume);
+
+      // Initialize x and y near the centroid to avoid force explosion
+      if (d.x === undefined || d.y === undefined) {
+        if (!isMobile) {
+          d.x = d.category === 'Technology' || d.category === 'Energy & Industrials' ? width / 4 : (3 * width) / 4;
+          d.y = d.category === 'Technology' || d.category === 'Financials & Macro' ? height / 4 : (3 * height) / 4;
+        } else {
+          let idx = 3;
+          if (d.category === 'Technology') idx = 0;
+          else if (d.category === 'Financials & Macro') idx = 1;
+          else if (d.category === 'Energy & Industrials') idx = 2;
+          d.x = width / 2;
+          d.y = idx * 256 + 10 + 120;
+        }
+      }
     });
 
     // Helper to calculate diverging bubble color scale
@@ -48,15 +177,56 @@ export default function BubbleCanvas({ data }) {
       }
     };
 
+    // Helper to calculate boundaries dynamically
+    const getBounds = (category) => {
+      if (!isMobile) {
+        const halfW = width / 2;
+        const halfH = height / 2;
+        if (category === 'Technology') {
+          return { xMin: 10, xMax: halfW - 10, yMin: 10, yMax: halfH - 10 };
+        } else if (category === 'Financials & Macro') {
+          return { xMin: halfW + 10, xMax: width - 10, yMin: 10, yMax: halfH - 10 };
+        } else if (category === 'Energy & Industrials') {
+          return { xMin: 10, xMax: halfW - 10, yMin: halfH + 10, yMax: height - 10 };
+        } else {
+          return { xMin: halfW + 10, xMax: width - 10, yMin: halfH + 10, yMax: height - 10 };
+        }
+      } else {
+        let idx = 3;
+        if (category === 'Technology') idx = 0;
+        else if (category === 'Financials & Macro') idx = 1;
+        else if (category === 'Energy & Industrials') idx = 2;
+        const yStart = idx * 256 + 10;
+        return {
+          xMin: 10,
+          xMax: width - 10,
+          yMin: yStart,
+          yMax: yStart + 240
+        };
+      }
+    };
+
     // D3 force simulation
     const simulation = d3.forceSimulation(nodes)
       .force('x', d3.forceX(d => {
-        const centroid = categoryCentroids[d.category] || categoryCentroids['Consumer & Others'];
-        return centroid.x;
+        if (!isMobile) {
+          if (d.category === 'Technology' || d.category === 'Energy & Industrials') return width / 4;
+          return (3 * width) / 4;
+        } else {
+          return width / 2;
+        }
       }).strength(0.15))
       .force('y', d3.forceY(d => {
-        const centroid = categoryCentroids[d.category] || categoryCentroids['Consumer & Others'];
-        return centroid.y;
+        if (!isMobile) {
+          if (d.category === 'Technology' || d.category === 'Financials & Macro') return height / 4;
+          return (3 * height) / 4;
+        } else {
+          let idx = 3;
+          if (d.category === 'Technology') idx = 0;
+          else if (d.category === 'Financials & Macro') idx = 1;
+          else if (d.category === 'Energy & Industrials') idx = 2;
+          return idx * 256 + 10 + 120;
+        }
       }).strength(0.15))
       .force('charge', d3.forceManyBody().strength(-10))
       .force('collision', d3.forceCollide(d => d.r + 2))
@@ -80,10 +250,22 @@ export default function BubbleCanvas({ data }) {
       .style('cursor', 'pointer')
       .on('mouseenter', (event, d) => {
         setHoveredNode(d);
-        setTooltipPos({ x: d.x, y: d.y - d.r - 10 });
+        const showBelow = d.y - d.r - 180 < 0;
+        const clampedX = Math.max(136, Math.min(width - 136, d.x));
+        setTooltipPos({ 
+          x: clampedX, 
+          y: showBelow ? d.y + d.r + 10 : d.y - d.r - 10,
+          showBelow 
+        });
       })
       .on('mousemove', (event, d) => {
-        setTooltipPos({ x: d.x, y: d.y - d.r - 10 });
+        const showBelow = d.y - d.r - 180 < 0;
+        const clampedX = Math.max(136, Math.min(width - 136, d.x));
+        setTooltipPos({ 
+          x: clampedX, 
+          y: showBelow ? d.y + d.r + 10 : d.y - d.r - 10,
+          showBelow 
+        });
       })
       .on('mouseleave', () => {
         setHoveredNode(null);
@@ -162,20 +344,10 @@ export default function BubbleCanvas({ data }) {
     // Update positions during ticks
     simulation.on('tick', () => {
       nodeSelection.attr('transform', d => {
-        // Enforce strict quadrant boundaries
-        let xMin = 10, xMax = 470, yMin = 10, yMax = 270;
-        if (d.category === 'Financials & Macro') {
-          xMin = 490; xMax = 950;
-        } else if (d.category === 'Energy & Industrials') {
-          yMin = 290; yMax = 550;
-        } else if (d.category === 'Consumer & Others') {
-          xMin = 490; xMax = 950;
-          yMin = 290; yMax = 550;
-        }
-
+        const bounds = getBounds(d.category);
         const padding = 6;
-        d.x = Math.max(xMin + d.r + padding, Math.min(xMax - d.r - padding, d.x));
-        d.y = Math.max(yMin + d.r + padding, Math.min(yMax - d.r - padding, d.y));
+        d.x = Math.max(bounds.xMin + d.r + padding, Math.min(bounds.xMax - d.r - padding, d.x));
+        d.y = Math.max(bounds.yMin + d.r + padding, Math.min(bounds.yMax - d.r - padding, d.y));
         return `translate(${d.x}, ${d.y})`;
       });
     });
@@ -183,10 +355,13 @@ export default function BubbleCanvas({ data }) {
     return () => {
       simulation.stop();
     };
-  }, [data]);
+  }, [data, width, height, isMobile]);
 
   return (
-    <div className="relative w-full overflow-x-auto flex justify-center bg-slate-950/20 border border-slate-900/60 rounded-xl p-1 shadow-inner">
+    <div 
+      ref={containerRef} 
+      className="relative w-full bg-slate-950/20 border border-slate-900/60 rounded-xl p-1 shadow-inner overflow-hidden flex justify-center"
+    >
       <svg
         ref={svgRef}
         width={width}

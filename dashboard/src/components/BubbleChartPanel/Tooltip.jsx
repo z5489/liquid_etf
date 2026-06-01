@@ -17,7 +17,7 @@ export default function Tooltip({ node, pos }) {
       style={{
         left: `${pos.x}px`,
         top: `${pos.y}px`,
-        transform: 'translate(-50%, -100%)',
+        transform: pos.showBelow ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
       }}
     >
       <div className="bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl p-4 shadow-2xl w-64 text-xs text-slate-200">

@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import Toolbar from './components/Toolbar';
 import ETFTable from './components/ETFTable';
 import DetailDrawer from './components/DetailDrawer';
+import BubbleChartPanel from './components/BubbleChartPanel';
 import { Activity, ShieldAlert, Sparkles, Clock } from 'lucide-react';
 
 export default function App() {
@@ -362,6 +363,9 @@ export default function App() {
               onExport={handleExport}
               isRefreshing={isLoading}
             />
+
+            {/* Bubble Chart Concentration Panel */}
+            <BubbleChartPanel etfs={sortedETFs} />
 
             {/* Table */}
             <ETFTable

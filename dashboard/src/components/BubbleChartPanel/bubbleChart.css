@@ -1,0 +1,28 @@
+/* Bubble Chart Panel Scoped Styles */
+
+/* Category boundaries */
+.category-boundary {
+  stroke-dasharray: 4 6;
+  transition: stroke 0.3s, fill 0.3s;
+}
+
+.category-label {
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Scrollbar styling for constituents in tooltip */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.45);
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.4);
+  border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.6);
+}

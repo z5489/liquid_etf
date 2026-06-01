@@ -5,6 +5,10 @@ on:
     - cron: '40 21 * * 1-5' # 21:30 UTC weekdays
   workflow_dispatch:      # Allow manual runs for testing
 
+concurrency:
+  group: fetch-etf-data
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -14,6 +18,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v5

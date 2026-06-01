@@ -48,6 +48,7 @@ We have successfully added the capability to load/toggle historical screening da
   ```yaml
   git add data/etf_momentum.csv data/etf_momentum_*.csv data/available_dates.json
   ```
+- **Workflow Serialization & Concurrency Fix**: Configured the same `concurrency` group `fetch-etf-data` with `cancel-in-progress: false` across all three batch workflows (and `split_batches.yml`). Also forced the checkout step to pull `ref: main`. This ensures sequential queueing of all repo-modifying tasks and prevents concurrent rebases/pushes from causing merge conflicts in `data/etf_momentum.csv`.
 
 ## Verification
 - Bundling and client compiling completes successfully.

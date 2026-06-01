@@ -33,7 +33,7 @@ company_mappings = {
     'DELL': 'DELL', 'VERTIV': 'VRT', 'JOBY AVIATION': 'JOBY', 'PLUG POWER': 'PLUG', 'UPSTART': 'UPST',
     'SOUNDHOUND': 'SOUN', 'LUMINAR': 'LAZR', 'RIVIAN': 'RIVN', 'CONKLIN': 'CNKL', 'OKTA': 'OKTA',
     'ALIBABA': 'BABA', 'NETFLIX': 'NFLX', 'META': 'META', 'ARCHER': 'ACHR', 'COINBASE': 'COIN',
-    'MICROSTRATEGY': 'MSTR'
+    'MICROSTRATEGY': 'MSTR', 'CEREBRAS': 'CBRS', 'BULL DAILY': 'BULL'
 }
 
 company_names = {
@@ -66,6 +66,7 @@ company_names = {
     'DELL': 'Dell Technologies',
     'WDC': 'Western Digital',
     'STX': 'Seagate Technology',
+    'MRVL': 'Marvell Technology',
     
     # Software & Cloud tech
     'PLTR': 'Palantir Technologies',
@@ -81,6 +82,8 @@ company_names = {
     'TTD': 'The Trade Desk',
     'U': 'Unity Software',
     'UNX': 'Unity Software',
+    'ASTS': 'AST SpaceMobile',
+    'AI': 'C3.ai',
     
     # AI & Hardware / Space Tech
     'RGTI': 'Rigetti Computing',
@@ -100,6 +103,7 @@ company_names = {
     'JOBY': 'Joby Aviation',
     'AVAV': 'AeroVironment',
     'RCAT': 'Red Cat Holdings',
+    'CBRS': 'Cerebras Systems',
     
     # Crypto & Blockchain
     'COIN': 'Coinbase',
@@ -125,6 +129,10 @@ company_names = {
     'HOOD': 'Robinhood',
     'AFRM': 'Affirm Holdings',
     'AXP': 'American Express',
+    'JP': 'JPMorgan Chase',
+    'BLSH': 'Bullish',
+    'BULL': 'Webull',
+    'XYZ': 'Block',
     
     # Energy, Industrial & Materials
     'OKLO': 'Oklo Inc.',
@@ -148,6 +156,78 @@ company_names = {
     'TSM': 'Taiwan Semiconductor',
     'USAR': 'USAR',
     'PANW': 'Palo Alto Networks',
+    'AAL': 'American Airlines',
+    'AAOI': 'Applied Optoelectronics',
+    'ALAB': 'Astera Labs',
+    'ALB': 'Albemarle',
+    'AMKR': 'Amkor Technology',
+    'AMPX': 'Amprius Technologies',
+    'ANET': 'Arista Networks',
+    'APH': 'Amphenol',
+    'BA': 'Boeing',
+    'BBAI': 'BigBear.ai',
+    'CAT': 'Caterpillar',
+    'CEG': 'Constellation Energy',
+    'CIEN': 'Ciena',
+    'CLS': 'Celestica',
+    'CMG': 'Chipotle Mexican Grill',
+    'CNC': 'Centene',
+    'COHR': 'Coherent',
+    'CPNG': 'Coupang',
+    'CRDO': 'Credo Technology',
+    'CRML': 'Critical Metals',
+    'DIS': 'Disney',
+    'DJT': 'Trump Media & Tech',
+    'DNN': 'Denison Mines',
+    'DUOL': 'Duolingo',
+    'EOSE': 'Eos Energy',
+    'ETN': 'Eaton',
+    'ETOR': 'eToro',
+    'FIG': 'Fortress Transportation',
+    'FIGR': 'Figure Acquisition',
+    'FLY': 'Flywire',
+    'GEV': 'GE Vernova',
+    'GLW': 'Corning',
+    'GRAB': 'Grab Holdings',
+    'HON': 'Honeywell',
+    'IBM': 'IBM',
+    'ISRG': 'Intuitive Surgical',
+    'KTOS': 'Kratos Defense',
+    'LCID': 'Lucid Group',
+    'LMND': 'Lemonade',
+    'LMT': 'Lockheed Martin',
+    'LULU': 'Lululemon',
+    'MELI': 'MercadoLibre',
+    'MPWR': 'Monolithic Power',
+    'NIO': 'Nio',
+    'NOK': 'Nokia',
+    'NU': 'Nu Holdings',
+    'NVO': 'Novo Nordisk',
+    'NVTS': 'Navitas Semiconductor',
+    'OPEN': 'Opendoor',
+    'ORLY': 'O\'Reilly Automotive',
+    'PATH': 'UiPath',
+    'PL': 'Planet Labs',
+    'POET': 'Poet Technologies',
+    'PONY': 'Pony.ai',
+    'QS': 'QuantumScape',
+    'QUBT': 'Quantum Computing',
+    'RDDT': 'Reddit',
+    'RIVN': 'Rivian',
+    'RKT': 'Rocket Companies',
+    'RTX': 'RTX Corp',
+    'SATS': 'EchoStar',
+    'SMR': 'NuScale Power',
+    'SNAP': 'Snap Inc.',
+    'SNDK': 'SanDisk',
+    'SPOT': 'Spotify',
+    'SRPT': 'Sarepta Therapeutics',
+    'TEM': 'Tempus AI',
+    'TER': 'Teradyne',
+    'UPS': 'United Parcel Service',
+    'VRT': 'Vertiv',
+    'XPEV': 'Xpeng',
+    'ZETA': 'Zeta Global',
     
     # Healthcare & Biotech
     'LLY': 'Eli Lilly',
@@ -188,6 +268,8 @@ company_names = {
     'UNG': 'Natural Gas',
     'UGA': 'Gasoline',
     'CPER': 'Copper',
+    'BU': 'Barrick Gold',
+    'XOVR': 'Private-Public Crossover'
 }
 
 single_asset_df = df[df['WeightScheme'] == 'Single asset'].copy()
@@ -250,13 +332,13 @@ for name_grp, group in res_df.groupby('Underlying'):
     # Category Assignment
     category = 'Consumer & Others'
     
-    # Financials / Crypto overrides (check this FIRST to resolve miners and MSTR properly!)
+    # Financials / Crypto overrides (check this FIRST!)
     is_fin = False
     if name_grp in [
         'COIN', 'MSTR', 'CRCL', 'BRKB', 'BRK', 'PYPL', 'FUTU', 'UPST', 'GLD', 'SLV', 'IAU', 'IAUM', 'SGOL', 'SIVR', 'AAAU', 
         'ETHA', 'BTC', 'ETH', 'SOL', 'XRP', 'BND', 'AGG', 'TLT', 'BIL', 'DOGE', 'SUI', 'AVAX', 'LTC', 'ADA', 'LINK', 'BNB',
         'MARA', 'RIOT', 'CLSK', 'IREN', 'BMNR', 'GLXY', 'CIFR', 'WULF', 'HUT', 'AGQ', 'ZSL', 'GLL', 'KOLD', 'BOIL', 'UGL',
-        'OILK', 'USL', 'USO', 'UNG', 'UGA', 'CPER', 'SCOP', 'PLTM', 'PPLT', 'PALL', 'UPAL', 'UPLT', 'ROYAL', 'FD'
+        'OILK', 'USL', 'USO', 'UNG', 'UGA', 'CPER', 'SCOP', 'PLTM', 'PPLT', 'PALL', 'UPAL', 'UPLT', 'ROYAL', 'FD', 'BLSH', 'BU', 'XYZ', 'BULL'
     ]:
         is_fin = True
     else:
@@ -282,7 +364,9 @@ for name_grp, group in res_df.groupby('Underlying'):
         if name_grp in [
             'PLTR', 'MRVL', 'NOW', 'ARM', 'AVGO', 'QCOM', 'INTC', 'ORCL', 'CRM', 'CSCO', 'ASML', 'AMD', 'NVDA', 'MSFT', 'AAPL', 
             'GOOGL', 'GOOG', 'META', 'NFLX', 'SMCI', 'RGTI', 'IONQ', 'QBTS', 'ONDS', 'AXTI', 'LITE', 'CRWV', 'OKTA', 'ADBE', 
-            'AMAT', 'BIDU', 'RDDT', 'COHR', 'APLD', 'APP', 'SOUN', 'LAZR', 'PANW'
+            'AMAT', 'BIDU', 'RDDT', 'COHR', 'APLD', 'APP', 'SOUN', 'LAZR', 'PANW', 'CBRS', 'AAOI', 'ALAB', 'AMKR', 'AMPX', 
+            'ANET', 'APH', 'BBAI', 'CBRS', 'CIEN', 'CLS', 'CRDO', 'DUOL', 'FLY', 'MPWR', 'NOK', 'PATH', 'POET', 'QUBT', 
+            'SNDK', 'SPOT', 'TEM', 'TER', 'ZETA', 'ASTS', 'AI'
         ]:
             is_tech = True
         else:
@@ -299,7 +383,9 @@ for name_grp, group in res_df.groupby('Underlying'):
             is_energy = False
             if name_grp in [
                 'XLE', 'OIH', 'XLU', 'XLRE', 'VNQ', 'LUNR', 'RDW', 'JOBY', 'PLUG', 'OKLO', 'UUUU', 'BA', 'XOM', 'RKLB', 
-                'BNO', 'BP', 'PBR', 'VALE', 'FCX', 'NEM', 'HL', 'PAAS', 'LAC', 'MP', 'LEU', 'UEC', 'BE', 'ACHR', 'USAR'
+                'BNO', 'BP', 'PBR', 'VALE', 'FCX', 'NEM', 'HL', 'PAAS', 'LAC', 'MP', 'LEU', 'UEC', 'BE', 'ACHR', 'USAR',
+                'AAL', 'ALB', 'CAT', 'CEG', 'CRML', 'DNN', 'EOSE', 'ETN', 'FIG', 'GEV', 'GLW', 'HON', 'KTOS', 'LMT', 
+                'OPEN', 'PL', 'RIVN', 'RTX', 'SMR', 'UPS', 'VRT'
             ]:
                 is_energy = True
             else:

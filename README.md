@@ -1,7 +1,5 @@
 # ETF Momentum Tracker
 
-**Live Dashboard:** [https://liquid-etf-h38t.vercel.app](https://liquid-etf-h38t.vercel.app)
-
 An automated ETF screening and monitoring system. It downloads metadata and daily prices from Yahoo Finance, filters for ETFs that show strong momentum and volatility, and displays the results in an interactive React dashboard.
 
 ## System Architecture

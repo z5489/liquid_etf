@@ -259,5 +259,33 @@ def main():
         
     print(f"Successfully saved {len(combined_df)} total tickers to {csv_path}.")
 
+    # Save historical dated copy (UTC date)
+    date_str = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    historical_path = f"data/etf_momentum_{date_str}.csv"
+    with open(historical_path, 'w', newline='', encoding='utf-8') as f:
+        f.write(f"Last Updated: {timestamp_str}\n\n")
+        combined_df.to_csv(f, index=False)
+    print(f"Successfully saved historical copy to {historical_path}.")
+
+    # Update available_dates.json
+    import re
+    date_pattern = re.compile(r"etf_momentum_(\d{4}-\d{2}-\d{2})\.csv")
+    available_dates = []
+    
+    # Scan the data directory for all date-stamped files
+    if os.path.exists("data"):
+        for f_name in os.listdir("data"):
+            match = date_pattern.match(f_name)
+            if match:
+                available_dates.append(match.group(1))
+                
+    # Sort in descending order (latest dates first)
+    available_dates.sort(reverse=True)
+    
+    dates_json_path = "data/available_dates.json"
+    with open(dates_json_path, 'w', encoding='utf-8') as f:
+        json.dump(available_dates, f, indent=2)
+    print(f"Successfully updated {dates_json_path} with {len(available_dates)} dates: {available_dates}")
+
 if __name__ == "__main__":
     main()

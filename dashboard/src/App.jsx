@@ -23,19 +23,50 @@ export default function App() {
   const [selectedETF, setSelectedETF] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
+  const [availableDates, setAvailableDates] = useState([]);
+  const [selectedDate, setSelectedDate] = useState('Latest');
+
   // Read config from env or default to raw github content or local mock
   // During local testing, we can serve it from '/data/etf_momentum.csv'
   const excelUrl = import.meta.env.VITE_EXCEL_URL || '/data/etf_momentum.csv';
+
+  const currentExcelUrl = useMemo(() => {
+    if (selectedDate === 'Latest') {
+      return excelUrl;
+    }
+    if (excelUrl.endsWith('etf_momentum.csv')) {
+      return excelUrl.replace('etf_momentum.csv', `etf_momentum_${selectedDate}.csv`);
+    }
+    return `/data/etf_momentum_${selectedDate}.csv`;
+  }, [selectedDate, excelUrl]);
+
+  const loadAvailableDates = async () => {
+    try {
+      let datesUrl = '/data/available_dates.json';
+      if (excelUrl.endsWith('etf_momentum.csv')) {
+        datesUrl = excelUrl.replace('etf_momentum.csv', 'available_dates.json');
+      }
+      const response = await fetch(datesUrl, { cache: 'no-store' });
+      if (response.ok) {
+        const dates = await response.json();
+        if (Array.isArray(dates)) {
+          setAvailableDates(dates);
+        }
+      }
+    } catch (err) {
+      console.warn('Could not load available dates list:', err);
+    }
+  };
 
   const loadData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(excelUrl, { cache: 'no-store' });
+      const response = await fetch(currentExcelUrl, { cache: 'no-store' });
       if (!response.ok) {
         throw new Error(
           `Could not download the Excel sheet (Status: ${response.status}). ` +
-          `Make sure the pipeline has run and the file exists at ${excelUrl}.`
+          `Make sure the pipeline has run and the file exists at ${currentExcelUrl}.`
         );
       }
 
@@ -97,8 +128,12 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadData();
+    loadAvailableDates();
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [currentExcelUrl]);
 
   // Determine dynamic options for filters based on dataset
   const assetClasses = useMemo(() => {
@@ -242,15 +277,41 @@ export default function App() {
             </div>
           </div>
 
-          {/* Metadata Display */}
-          {lastUpdated && (
-            <div className="flex items-center gap-2.5 bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-400 self-start md:self-auto shadow-sm">
-              <Clock className="w-3.5 h-3.5 text-indigo-400" />
-              <span>
-                Last Updated: <strong className="text-slate-200">{lastUpdated}</strong>
-              </span>
-            </div>
-          )}
+          {/* Metadata & Date Selection */}
+          <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+            {availableDates.length > 0 && (
+              <div className="flex items-center gap-2.5 bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 transition-all shadow-sm">
+                <span className="font-semibold uppercase tracking-wider text-[10px] text-slate-500">Date:</span>
+                <select
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="bg-transparent border-none text-slate-200 font-bold focus:outline-none cursor-pointer pr-4 appearance-none relative"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23818cf8' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`,
+                    backgroundPosition: 'right center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '10px',
+                  }}
+                >
+                  <option value="Latest" className="bg-slate-950 text-slate-200">Latest Data</option>
+                  {availableDates.map((date) => (
+                    <option key={date} value={date} className="bg-slate-950 text-slate-200">
+                      {date}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {lastUpdated && (
+              <div className="flex items-center gap-2.5 bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-400 shadow-sm">
+                <Clock className="w-3.5 h-3.5 text-indigo-400" />
+                <span>
+                  Last Updated: <strong className="text-slate-200">{lastUpdated}</strong>
+                </span>
+              </div>
+            )}
+          </div>
         </header>
 
         {/* Error Alert */}

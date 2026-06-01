@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "node -e \"const fs=require('fs'); fs.mkdirSync('public/data', {recursive: true}); fs.copyFileSync('../data/etf_momentum.csv', 'public/data/etf_momentum.csv');\" && vite build",
+    "dev": "node -e \"const fs=require('fs'); if (fs.existsSync('../data')) { fs.mkdirSync('public/data', {recursive: true}); fs.readdirSync('../data').forEach(f => { if(f.endsWith('.csv') || f.endsWith('.json')) fs.copyFileSync('../data/' + f, 'public/data/' + f); }); }\" && vite",
+    "build": "node -e \"const fs=require('fs'); fs.mkdirSync('public/data', {recursive: true}); fs.readdirSync('../data').forEach(f => { if(f.endsWith('.csv') || f.endsWith('.json')) fs.copyFileSync('../data/' + f, 'public/data/' + f); });\" && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

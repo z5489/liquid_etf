@@ -33,5 +33,5 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/etf_momentum.csv
+          git add data/etf_momentum.csv data/etf_momentum_*.csv data/available_dates.json
           git diff-index --quiet HEAD || (git commit -m "Update ETF momentum data (Batch 3)" && git pull --rebase && git push)

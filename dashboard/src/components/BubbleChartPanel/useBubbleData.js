@@ -40,6 +40,12 @@ function getUnderlyingTicker(etf) {
   return ticker;
 }
 
+const blacklistFocus = new Set(['Large cap', 'Total market', 'Mid cap', 'Small cap', 'Investment grade']);
+const blacklistTickers = new Set([
+  'SPY', 'IVV', 'VOO', 'QQQ', 'VTI', 'VXUS', 'VEA', 'IEFA', 'BND', 'AGG', 
+  'VWO', 'IWM', 'EFA', 'EEM', 'DIA', 'EAFE', 'TLT', 'BIL', 'SGOV'
+]);
+
 export function useBubbleData(etfs) {
   return useMemo(() => {
     if (!etfs || etfs.length === 0) return [];
@@ -47,6 +53,13 @@ export function useBubbleData(etfs) {
     const groups = {};
 
     etfs.forEach((etf) => {
+      // 1. Skip broad market indices that drown out single tickers
+      const focus = etf.Focus || '';
+      const ticker = etf.Ticker || '';
+      if (blacklistFocus.has(focus) || blacklistTickers.has(ticker)) {
+        return;
+      }
+
       const vol = etf.DollarVolume || 0;
       if (vol <= 0) return;
 

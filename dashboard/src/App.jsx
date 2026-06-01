@@ -16,7 +16,7 @@ export default function App() {
   const [selectedLeverage, setSelectedLeverage] = useState('All');
   const [selectedFocus, setSelectedFocus] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('Passed');
-  const [sortColumn, setSortColumn] = useState('Change%'); // default sort
+  const [sortColumn, setSortColumn] = useState('DollarVolume'); // default sort
   const [sortDirection, setSortDirection] = useState('desc'); // default direction
 
   // Selected ETF for drawer
@@ -24,14 +24,14 @@ export default function App() {
   const [lastUpdated, setLastUpdated] = useState(null);
 
   const [availableDates, setAvailableDates] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('Latest');
+  const [selectedDate, setSelectedDate] = useState('');
 
   // Read config from env or default to raw github content or local mock
   // During local testing, we can serve it from '/data/etf_momentum.csv'
   const excelUrl = import.meta.env.VITE_EXCEL_URL || '/data/etf_momentum.csv';
 
   const currentExcelUrl = useMemo(() => {
-    if (selectedDate === 'Latest') {
+    if (!selectedDate) {
       return excelUrl;
     }
     if (excelUrl.endsWith('etf_momentum.csv')) {
@@ -49,8 +49,9 @@ export default function App() {
       const response = await fetch(datesUrl, { cache: 'no-store' });
       if (response.ok) {
         const dates = await response.json();
-        if (Array.isArray(dates)) {
+        if (Array.isArray(dates) && dates.length > 0) {
           setAvailableDates(dates);
+          setSelectedDate(dates[0]); // Default to the most recent date (last business day)
         }
       }
     } catch (err) {
@@ -293,7 +294,6 @@ export default function App() {
                     backgroundSize: '10px',
                   }}
                 >
-                  <option value="Latest" className="bg-slate-950 text-slate-200">Latest Data</option>
                   {availableDates.map((date) => (
                     <option key={date} value={date} className="bg-slate-950 text-slate-200">
                       {date}

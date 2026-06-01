@@ -1,6 +1,6 @@
 # Walkthrough - Historical Date Selection & Ticker Bubble Chart
 
-We have successfully added the capability to load/toggle historical screening data and visualize individual ETF concentration map using a D3 force-directed bubble chart.
+We have successfully added the capability to load/toggle historical screening data and visualize underlying stock ticker concentration map using a D3 force-directed bubble chart.
 
 ## Key Changes
 
@@ -21,16 +21,17 @@ We have successfully added the capability to load/toggle historical screening da
 
 ### 4. D3 Ticker Bubble Chart Panel
 - Implemented a concentration bubble map under `dashboard/src/components/BubbleChartPanel/`:
-  - **Ticker Bubbles**: Instead of grouping by keyword, each individual ETF is rendered as its own bubble.
-  - **Sizing**: Circle radius is scaled to the ETF's `DollarVolume` (minimum 24px, maximum 76px) using `d3.scaleSqrt` to maintain proportional area.
-  - **Coloring**: Diverging color interpolation between deep red (`#f43f5e`), neutral gray (`#334155`), and green (`#10b981`) represents the ETF's `% Change`.
+  - **Stock Ticker Aggregation**: Resolved single-stock leveraged ETFs (such as `MUU` for MU, `NVDL`/`NVDY` for NVDA, `TSLL` for TSLA, `CORZ`, `PANW`, `ACHR`, `TSM`, `UUUU`) to their underlying stock ticker.
+  - **Capital Letter Ticker Parsing**: Created a dynamic uppercase word search parser in [useBubbleData.js](file:///c:/Users/ziyen/liquid_etf/dashboard/src/components/BubbleChartPanel/useBubbleData.js). It scans the ETF's Name for 2-5 consecutive uppercase letters (e.g. `TSM` in `"Direxion Daily TSM Bull 2X ETF"`, or `PANW` in `"Yieldmax PANW Option..."`), filters out common uppercase financial words (like `ETF`, `USD`, `INC`, `PLC`, etc.), and extracts the stock ticker automatically.
+  - **Sizing**: Circle radius is scaled to the aggregated ticker's `DollarVolume` (minimum 24px, maximum 76px) using `d3.scaleSqrt` to maintain proportional area.
+  - **Coloring**: Diverging color interpolation between deep red (`#f43f5e`), neutral gray (`#334155`), and green (`#10b981`) represents the weighted average `% Change`.
   - **D3 Simulation**: Nodes repel each other and are attracted to their category quadrant centroids (Technology, Financials & Macro, Energy & Industrials, Consumer & Others).
   - **Label Density**: Text labels are automatically adapted to circle radius:
-    - Small (`r < 32`): Ticker only (e.g. `SMH`).
-    - Medium (`32 <= r < 45`): Ticker + keyword Focus sub-label (e.g. `SMH` / `Semiconductors`).
+    - Small (`r < 32`): Ticker only (e.g. `MU`).
+    - Medium (`32 <= r < 45`): Ticker + keyword Focus sub-label (e.g. `MU` / `Micron Technology`).
     - Large (`45 <= r < 60`): Ticker + keyword + Change % (e.g. `NVDA` / `NVIDIA` / `+15.41%`).
     - Extra-large (`r >= 60`): Adds the Dollar Volume line (e.g. `$2.4B`).
-  - **Stats Tooltip**: Floating absolute-positioned card shows full ETF Name, Ticker, Focus keyword, Category, AUM, Volume, and Change %.
+  - **Stats Tooltip**: Floating absolute-positioned card shows the underlying stock ticker, full ETF Name, Focus keyword, Category, AUM, Volume, Change %, and a list of all contributing ETFs (e.g. `MUU`).
 
 ### 5. GitHub Workflows
 - Updated `fetch_batch1.yml`, `fetch_batch2.yml`, and `fetch_batch3.yml` to stage the new date-stamped files and the `available_dates.json` index:

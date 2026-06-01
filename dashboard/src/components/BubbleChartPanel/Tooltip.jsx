@@ -6,6 +6,11 @@ export default function Tooltip({ node, pos }) {
 
   const isPositive = node.changePct > 0;
   
+  // Extract unique short tickers for list
+  const contributingTickers = node.etfsList 
+    ? [...new Set(node.etfsList.map(item => item.split(' ')[0]))]
+    : [];
+
   return (
     <div
       className="absolute z-50 pointer-events-none transition-all duration-75"
@@ -61,6 +66,18 @@ export default function Tooltip({ node, pos }) {
                   ? `$${(node.aum / 1e9).toFixed(2)}B` 
                   : `$${(node.aum / 1e6).toFixed(1)}M`}
               </span>
+            </div>
+          )}
+
+          {/* Contributing ETFs */}
+          {contributingTickers.length > 0 && (
+            <div className="border-t border-slate-800/60 pt-2 mt-2">
+              <div className="text-[9px] uppercase tracking-wider text-slate-500 font-bold mb-1">
+                Contributing ETFs:
+              </div>
+              <div className="text-[10px] text-slate-300 font-mono flex flex-wrap gap-1 leading-snug">
+                {contributingTickers.join(', ')}
+              </div>
             </div>
           )}
         </div>

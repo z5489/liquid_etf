@@ -8,14 +8,16 @@ All notable changes to this project are documented below. This project follows g
 
 ### Added
 - **Animate History Toggle Button**: Added a toggle button in the card header. Animate Mode is disabled by default, keeping the map exactly as it was originally (synced with global table filters). Clicking "Animate History" reveals the timeline and comparison indicators.
-- **Timeline Date Slider**: Chronological slider timeline at the bottom of the Sector & Holding Concentration Map to browse historical data.
-- **Autoplay Timeline Loop**: Auto-play control (play/pause buttons) to automatically cycle through available dates every 1.5 seconds.
+- **Custom Visual Timeline**: Redesigned timeline showing styled tick dots for all available dates and clear date labels underneath so the user knows exactly where intermediate date points reside.
+- **Timeline Navigator Knob**: Interactive navigator thumb (custom white-bordered indigo dot) that can be clicked or dragged to snap to any date point.
+- **Autoplay Timeline Loop**: Auto-play control that plays through the timeline step-by-step and automatically halts when reaching the latest date. If play is clicked while at the latest date, it restarts playback from the oldest date.
 - **Isolated Status Filter**: Segmented pill toggle button in the card header for switching between **Passed Only** and **All Statuses** independently of the main dashboard table.
 - **Concentric Size Change Visualizations**: 
   - *Yesterday Larger (Shrunk Today)*: Renders a dashed outer ring (indigo `#a5b4fc`) representing the previous day's larger volume.
   - *Yesterday Smaller (Grew Today)*: Renders a dashed inner ring (translucent white) representing the previous day's smaller volume.
 - **Size Change Legend**: Dual-column sub-legend added explaining the concentric dashed line visual cues.
 - **Data Caching**: Caching structure (`cacheRef`) inside the component so that sliding back and forth between dates loads data instantly.
+
 
 
 ---

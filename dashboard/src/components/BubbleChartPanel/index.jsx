@@ -39,6 +39,13 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
     }
   }, [isAnimateMode]);
 
+  // Stop playing when we reach the end of the timeline
+  useEffect(() => {
+    if (isPlaying && localDate === chronologicalDates[chronologicalDates.length - 1]) {
+      setIsPlaying(false);
+    }
+  }, [localDate, chronologicalDates, isPlaying]);
+
   // Helper to resolve URL for a given date
   const getExcelUrlForDate = (date) => {
     const baseUrl = excelUrl || '/data/etf_momentum.csv';
@@ -148,15 +155,27 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
     const interval = setInterval(() => {
       setLocalDate((prevDate) => {
         const idx = chronologicalDates.indexOf(prevDate);
-        if (idx === -1) return chronologicalDates[chronologicalDates.length - 1];
-        // Advance: if at the end (newest), wrap around to index 0 (oldest)
-        const nextIdx = (idx + 1) % chronologicalDates.length;
-        return chronologicalDates[nextIdx];
+        if (idx === -1 || idx >= chronologicalDates.length - 1) {
+          return prevDate; // Don't advance past the end
+        }
+        return chronologicalDates[idx + 1];
       });
     }, 1500);
 
     return () => clearInterval(interval);
   }, [isPlaying, chronologicalDates, isCollapsed, isAnimateMode]);
+
+  // Handle play button toggles
+  const handlePlayToggle = () => {
+    if (!isPlaying) {
+      // If we are currently at the latest date, wrap back to the oldest date before playing
+      const idx = chronologicalDates.indexOf(localDate);
+      if (idx === chronologicalDates.length - 1) {
+        setLocalDate(chronologicalDates[0]);
+      }
+    }
+    setIsPlaying(!isPlaying);
+  };
 
   // Handle slider manual dragging
   const handleSliderChange = (e) => {
@@ -236,7 +255,7 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
                 className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                   localStatus === 'Passed'
                     ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-slate-450 hover:text-slate-200'
+                    : 'text-slate-455 hover:text-slate-200'
                 }`}
               >
                 Passed Only
@@ -246,7 +265,7 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
                 className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                   localStatus === 'All'
                     ? 'bg-indigo-600 text-white shadow-md'
-                    : 'text-slate-450 hover:text-slate-200'
+                    : 'text-slate-455 hover:text-slate-200'
                 }`}
               >
                 All Statuses
@@ -297,32 +316,87 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
 
           {/* Chronological Date Slider timeline controls (Only in Animate Mode) */}
           {isAnimateMode && chronologicalDates.length > 1 && !isLoading && !error && (
-            <div className="mt-6 p-4 bg-slate-900/40 border border-slate-900/60 rounded-xl flex items-center gap-4 shadow-inner animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="mt-6 p-4 bg-slate-900/40 border border-slate-900/60 rounded-xl flex items-center gap-6 shadow-inner animate-in fade-in slide-in-from-bottom-2 duration-300">
               {/* Play/Pause Button */}
               <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                className="flex items-center justify-center p-2.5 bg-indigo-600 hover:bg-indigo-550 active:bg-indigo-750 text-white rounded-xl shadow-md transition-all duration-200 cursor-pointer flex-shrink-0"
+                onClick={handlePlayToggle}
+                className="flex items-center justify-center p-2.5 bg-indigo-650 hover:bg-indigo-550 active:bg-indigo-750 text-white rounded-xl shadow-md transition-all duration-200 cursor-pointer flex-shrink-0"
                 title={isPlaying ? "Pause Auto-play" : "Play Timeline"}
               >
                 {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
               </button>
 
-              {/* Slider timeline */}
-              <div className="flex-1 w-full flex flex-col gap-1.5">
-                <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1">
-                  <span>{chronologicalDates[0]}</span>
-                  <span className="text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 font-mono text-xs">
-                    {localDate}
-                  </span>
-                  <span>{chronologicalDates[chronologicalDates.length - 1]}</span>
+              {/* Slider timeline container */}
+              <div className="flex-1 relative h-12 flex items-center">
+                {/* Custom Track Background */}
+                <div className="absolute left-0 right-0 h-1 bg-slate-800 rounded-full top-[22px]" />
+                
+                {/* Active Track Progress */}
+                <div 
+                  className="absolute left-0 h-1 bg-indigo-500 rounded-full transition-all duration-350 top-[22px]"
+                  style={{
+                    width: `${(sliderIndex / (chronologicalDates.length - 1)) * 100}%`
+                  }}
+                />
+
+                {/* Tick Marks & Labels */}
+                <div className="absolute left-0 right-0 top-0 bottom-0 pointer-events-none">
+                  {chronologicalDates.map((date, idx) => {
+                    const isSelected = idx === sliderIndex;
+                    const isPast = idx < sliderIndex;
+                    const pct = (idx / (chronologicalDates.length - 1)) * 100;
+                    
+                    return (
+                      <div 
+                        key={date}
+                        className="absolute flex flex-col items-center select-none"
+                        style={{
+                          left: `${pct}%`,
+                          transform: 'translateX(-50%)',
+                          top: '17px'
+                        }}
+                      >
+                        {/* Dot */}
+                        <div 
+                          className={`w-3.5 h-3.5 rounded-full border-2 transition-all duration-300 ${
+                            isSelected 
+                              ? 'bg-white border-indigo-500 shadow-md shadow-indigo-500/50 scale-125' 
+                              : isPast 
+                                ? 'bg-indigo-500 border-indigo-650' 
+                                : 'bg-slate-900 border-slate-700'
+                          }`}
+                        />
+                        {/* Label */}
+                        <span 
+                          className={`text-[10px] font-mono mt-2 transition-colors duration-300 ${
+                            isSelected ? 'text-indigo-400 font-extrabold' : 'text-slate-500 font-bold'
+                          }`}
+                        >
+                          {date}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
+
+                {/* Native range input overlaid on top, track invisible, thumb customized */}
                 <input
                   type="range"
                   min="0"
                   max={chronologicalDates.length - 1}
                   value={sliderIndex >= 0 ? sliderIndex : 0}
                   onChange={handleSliderChange}
-                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500 focus:outline-none"
+                  className="absolute left-0 w-full h-8 opacity-0 cursor-pointer z-10"
+                />
+                
+                {/* The visible custom navigator knob */}
+                <div 
+                  className="absolute w-5 h-5 bg-indigo-500 border-2 border-white rounded-full shadow-lg pointer-events-none transition-all duration-150"
+                  style={{
+                    left: `${(sliderIndex / (chronologicalDates.length - 1)) * 100}%`,
+                    transform: 'translateX(-50%)',
+                    top: '14px' // Centered exactly at 24px center line
+                  }}
                 />
               </div>
             </div>

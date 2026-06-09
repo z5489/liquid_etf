@@ -46,80 +46,91 @@ const blacklistTickers = new Set([
   'VWO', 'IWM', 'EFA', 'EEM', 'DIA', 'EAFE', 'TLT', 'BIL', 'SGOV'
 ]);
 
-export function useBubbleData(etfs) {
+function aggregateEtfs(etfs) {
+  const groups = {};
+  if (!etfs || etfs.length === 0) return groups;
+
+  etfs.forEach((etf) => {
+    // 1. Skip broad market indices that drown out single tickers
+    const focus = etf.Focus || '';
+    const ticker = etf.Ticker || '';
+    if (blacklistFocus.has(focus) || blacklistTickers.has(ticker)) {
+      return;
+    }
+
+    const vol = etf.DollarVolume || 0;
+    if (vol <= 0) return;
+
+    const change = etf['Change%'] || 0;
+    
+    // Determine underlying ticker
+    const targetTicker = getUnderlyingTicker(etf);
+
+    // Determine keyword (human-readable sector or focus)
+    let keyword = tickerToKeyword[targetTicker] || tickerToKeyword[etf.Ticker];
+    if (!keyword) {
+      if (etf.Focus && etf.Focus !== 'Unknown' && etf.Focus !== 'Total market') {
+        keyword = etf.Focus;
+      } else {
+        keyword = etf.AssetClass || 'Other';
+      }
+    }
+
+    // Determine Category
+    let category = keywordToCategory[keyword];
+    if (!category) {
+      category = keywordToCategory[etf.Focus] || keywordToCategory[etf.AssetClass] || defaultCategory;
+    }
+
+    if (!groups[targetTicker]) {
+      groups[targetTicker] = {
+        id: targetTicker,
+        ticker: targetTicker,
+        keyword: keyword,
+        category: category,
+        dollarVolume: 0,
+        weightedChangeSum: 0,
+        aumSum: 0,
+        etfsList: [],
+        largestEtfName: etf.Name,
+        largestEtfVol: 0,
+      };
+    }
+
+    const g = groups[targetTicker];
+    g.dollarVolume += vol;
+    g.weightedChangeSum += change * vol;
+    g.aumSum += etf.AUM || 0;
+    g.etfsList.push(`${etf.Ticker} (${etf.Name})`);
+    
+    if (vol > g.largestEtfVol) {
+      g.largestEtfVol = vol;
+      g.largestEtfName = etf.Name;
+    }
+  });
+
+  return groups;
+}
+
+export function useBubbleData(currentEtfs, previousEtfs) {
   return useMemo(() => {
-    if (!etfs || etfs.length === 0) return [];
+    if (!currentEtfs || currentEtfs.length === 0) return [];
 
-    const groups = {};
-
-    etfs.forEach((etf) => {
-      // 1. Skip broad market indices that drown out single tickers
-      const focus = etf.Focus || '';
-      const ticker = etf.Ticker || '';
-      if (blacklistFocus.has(focus) || blacklistTickers.has(ticker)) {
-        return;
-      }
-
-      const vol = etf.DollarVolume || 0;
-      if (vol <= 0) return;
-
-      const change = etf['Change%'] || 0;
-      
-      // Determine underlying ticker
-      const targetTicker = getUnderlyingTicker(etf);
-
-      // Determine keyword (human-readable sector or focus)
-      let keyword = tickerToKeyword[targetTicker] || tickerToKeyword[etf.Ticker];
-      if (!keyword) {
-        if (etf.Focus && etf.Focus !== 'Unknown' && etf.Focus !== 'Total market') {
-          keyword = etf.Focus;
-        } else {
-          keyword = etf.AssetClass || 'Other';
-        }
-      }
-
-      // Determine Category
-      let category = keywordToCategory[keyword];
-      if (!category) {
-        category = keywordToCategory[etf.Focus] || keywordToCategory[etf.AssetClass] || defaultCategory;
-      }
-
-      if (!groups[targetTicker]) {
-        groups[targetTicker] = {
-          id: targetTicker,
-          ticker: targetTicker,
-          keyword: keyword,
-          category: category,
-          dollarVolume: 0,
-          weightedChangeSum: 0,
-          aumSum: 0,
-          etfsList: [],
-          largestEtfName: etf.Name,
-          largestEtfVol: 0,
-        };
-      }
-
-      const g = groups[targetTicker];
-      g.dollarVolume += vol;
-      g.weightedChangeSum += change * vol;
-      g.aumSum += etf.AUM || 0;
-      g.etfsList.push(`${etf.Ticker} (${etf.Name})`);
-      
-      if (vol > g.largestEtfVol) {
-        g.largestEtfVol = vol;
-        g.largestEtfName = etf.Name;
-      }
-    });
+    const currentGroups = aggregateEtfs(currentEtfs);
+    const previousGroups = previousEtfs && previousEtfs.length > 0 ? aggregateEtfs(previousEtfs) : {};
 
     // Compute final aggregated data
-    const nodes = Object.values(groups).map((g) => {
+    const nodes = Object.values(currentGroups).map((g) => {
       const changePct = g.dollarVolume > 0 ? g.weightedChangeSum / g.dollarVolume : 0;
+      const dollarVolumePrev = previousGroups[g.ticker]?.dollarVolume || 0;
+
       return {
         id: g.id,
         ticker: g.ticker,
         keyword: g.keyword,
         category: g.category,
         dollarVolume: g.dollarVolume,
+        dollarVolumePrev: dollarVolumePrev,
         changePct: changePct,
         aum: g.aumSum,
         name: g.largestEtfName, // Use name of largest ETF in the group
@@ -130,5 +141,6 @@ export function useBubbleData(etfs) {
     // Sort by dollarVolume descending and take top 45/50 tickers
     nodes.sort((a, b) => b.dollarVolume - a.dollarVolume);
     return nodes.slice(0, 45);
-  }, [etfs]);
+  }, [currentEtfs, previousEtfs]);
 }
+

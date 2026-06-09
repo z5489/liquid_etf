@@ -365,7 +365,11 @@ export default function App() {
             />
 
             {/* Bubble Chart Concentration Panel */}
-            <BubbleChartPanel etfs={sortedETFs} />
+            <BubbleChartPanel
+              etfs={sortedETFs}
+              availableDates={availableDates}
+              excelUrl={excelUrl}
+            />
 
             {/* Table */}
             <ETFTable

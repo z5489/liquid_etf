@@ -149,6 +149,13 @@ export default function BubbleCanvas({ data }) {
     // Attach radius and initial coordinates to each node
     nodes.forEach(d => {
       d.r = radiusScale(d.dollarVolume);
+      
+      // Calculate previous radius if dollarVolumePrev is available
+      if (d.dollarVolumePrev && d.dollarVolumePrev > 0) {
+        d.rPrev = Math.max(2, radiusScale(d.dollarVolumePrev));
+      } else {
+        d.rPrev = 0;
+      }
 
       // Initialize x and y near the centroid to avoid force explosion
       if (d.x === undefined || d.y === undefined) {
@@ -292,6 +299,17 @@ export default function BubbleCanvas({ data }) {
           .attr('stroke-width', '1.5px');
       });
 
+    // Append previous size dashed circle if available
+    nodeSelection.filter(d => d.rPrev && d.rPrev > 0)
+      .append('circle')
+      .attr('r', d => d.rPrev)
+      .attr('fill', 'none')
+      .attr('stroke', d => d.rPrev > d.r ? '#a5b4fc' : 'rgba(255, 255, 255, 0.45)') // light indigo if yesterday was larger, white if yesterday was smaller
+      .attr('stroke-width', d => d.rPrev > d.r ? '1.5px' : '1.2px')
+      .attr('stroke-dasharray', '3,3')
+      .attr('opacity', d => d.rPrev > d.r ? 0.75 : 0.5)
+      .attr('pointer-events', 'none');
+
     // Add Ticker label (Line 1)
     nodeSelection.append('text')
       .attr('dy', d => d.r >= 38 ? '-10' : d.r >= 28 ? '-2' : '3')
@@ -346,8 +364,9 @@ export default function BubbleCanvas({ data }) {
       nodeSelection.attr('transform', d => {
         const bounds = getBounds(d.category);
         const padding = 6;
-        d.x = Math.max(bounds.xMin + d.r + padding, Math.min(bounds.xMax - d.r - padding, d.x));
-        d.y = Math.max(bounds.yMin + d.r + padding, Math.min(bounds.yMax - d.r - padding, d.y));
+        const maxRadius = Math.max(d.r, d.rPrev || 0);
+        d.x = Math.max(bounds.xMin + maxRadius + padding, Math.min(bounds.xMax - maxRadius - padding, d.x));
+        d.y = Math.max(bounds.yMin + maxRadius + padding, Math.min(bounds.yMax - maxRadius - padding, d.y));
         return `translate(${d.x}, ${d.y})`;
       });
     });

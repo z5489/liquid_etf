@@ -1,10 +1,14 @@
 import React from 'react';
 
-export default function Legend() {
+export default function Legend({ isAnimateMode }) {
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between gap-6 mt-4 pt-4 border-t border-slate-900/60 px-2">
+    <div className={`flex flex-col md:flex-row items-center gap-6 mt-4 pt-4 border-t border-slate-900/60 px-2 ${
+      isAnimateMode ? 'justify-between' : 'justify-center'
+    }`}>
       {/* Average Price Change */}
-      <div className="flex flex-col items-center md:items-start gap-1.5 flex-1">
+      <div className={`flex flex-col items-center gap-1.5 ${
+        isAnimateMode ? 'md:items-start flex-1' : ''
+      }`}>
         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           Average Price Change (%)
         </div>
@@ -21,28 +25,31 @@ export default function Legend() {
       </div>
 
       {/* Size Change vs Prior Date */}
-      <div className="flex flex-col items-center md:items-end gap-1.5 flex-1">
-        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-          Volume Change vs. Previous Date
-        </div>
-        <div className="flex flex-wrap items-center justify-center md:justify-end gap-5 text-[11px] text-slate-300 font-medium">
-          <div className="flex items-center gap-2">
-            <svg width="20" height="20" className="overflow-visible flex-shrink-0">
-              <circle cx="10" cy="10" r="6" fill="#334155" stroke="#1e293b" strokeWidth="1" />
-              <circle cx="10" cy="10" r="9" fill="none" stroke="#a5b4fc" strokeWidth="1" strokeDasharray="2,2" />
-            </svg>
-            <span>Yesterday Larger (Shrunk)</span>
+      {isAnimateMode && (
+        <div className="flex flex-col items-center md:items-end gap-1.5 flex-1">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            Volume Change vs. Previous Date
           </div>
-          <div className="flex items-center gap-2">
-            <svg width="20" height="20" className="overflow-visible flex-shrink-0">
-              <circle cx="10" cy="10" r="9" fill="#334155" stroke="#1e293b" strokeWidth="1" />
-              <circle cx="10" cy="10" r="5" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1" strokeDasharray="2,2" />
-            </svg>
-            <span>Yesterday Smaller (Grew)</span>
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-5 text-[11px] text-slate-300 font-medium">
+            <div className="flex items-center gap-2">
+              <svg width="20" height="20" className="overflow-visible flex-shrink-0">
+                <circle cx="10" cy="10" r="6" fill="#334155" stroke="#1e293b" strokeWidth="1" />
+                <circle cx="10" cy="10" r="9" fill="none" stroke="#a5b4fc" strokeWidth="1" strokeDasharray="2,2" />
+              </svg>
+              <span>Yesterday Larger (Shrunk)</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg width="20" height="20" className="overflow-visible flex-shrink-0">
+                <circle cx="10" cy="10" r="9" fill="#334155" stroke="#1e293b" strokeWidth="1" />
+                <circle cx="10" cy="10" r="5" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1" strokeDasharray="2,2" />
+              </svg>
+              <span>Yesterday Smaller (Grew)</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
+
 

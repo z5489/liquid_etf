@@ -3,11 +3,12 @@ import * as XLSX from 'xlsx';
 import BubbleCanvas from './BubbleCanvas';
 import Legend from './Legend';
 import { useBubbleData } from './useBubbleData';
-import { Sparkles, BarChart2, ChevronDown, ChevronUp, Play, Pause, Loader2 } from 'lucide-react';
+import { Sparkles, BarChart2, ChevronDown, ChevronUp, Play, Pause, Loader2, Activity } from 'lucide-react';
 import './bubbleChart.css';
 
 export default function BubbleChartPanel({ etfs = [], availableDates = [], excelUrl }) {
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isAnimateMode, setIsAnimateMode] = useState(false);
   const cacheRef = useRef({});
 
   // 1. Setup chronological list of dates (oldest first for slider)
@@ -15,7 +16,7 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
     return [...availableDates].reverse();
   }, [availableDates]);
 
-  // 2. States for isolated panel controls
+  // 2. States for isolated panel controls (only active in Animate mode)
   const [localDate, setLocalDate] = useState('');
   const [localStatus, setLocalStatus] = useState('Passed'); // 'Passed' or 'All'
   const [isPlaying, setIsPlaying] = useState(false);
@@ -30,6 +31,13 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
       setLocalDate(chronologicalDates[chronologicalDates.length - 1]);
     }
   }, [chronologicalDates, localDate]);
+
+  // Reset autoplay if we exit animate mode
+  useEffect(() => {
+    if (!isAnimateMode) {
+      setIsPlaying(false);
+    }
+  }, [isAnimateMode]);
 
   // Helper to resolve URL for a given date
   const getExcelUrlForDate = (date) => {
@@ -86,9 +94,9 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
     return data;
   };
 
-  // Fetch current and previous data when localDate changes
+  // Fetch current and previous data when localDate changes (only when Animate mode is active)
   useEffect(() => {
-    if (!localDate || chronologicalDates.length === 0) return;
+    if (!localDate || chronologicalDates.length === 0 || !isAnimateMode) return;
 
     let isCancelled = false;
 
@@ -128,11 +136,11 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
     return () => {
       isCancelled = true;
     };
-  }, [localDate, chronologicalDates]);
+  }, [localDate, chronologicalDates, isAnimateMode]);
 
-  // 3. Auto-play loop timeline logic
+  // Auto-play loop timeline logic (only runs when Animate mode is active)
   useEffect(() => {
-    if (!isPlaying || chronologicalDates.length <= 1 || isCollapsed) {
+    if (!isPlaying || chronologicalDates.length <= 1 || isCollapsed || !isAnimateMode) {
       setIsPlaying(false);
       return;
     }
@@ -148,7 +156,7 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
     }, 1500);
 
     return () => clearInterval(interval);
-  }, [isPlaying, chronologicalDates, isCollapsed]);
+  }, [isPlaying, chronologicalDates, isCollapsed, isAnimateMode]);
 
   // Handle slider manual dragging
   const handleSliderChange = (e) => {
@@ -163,9 +171,8 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
     return chronologicalDates.indexOf(localDate);
   }, [localDate, chronologicalDates]);
 
-  // 4. Filtering current ETFs based on local status toggle
+  // Filtering current ETFs based on local status toggle (only applies in Animate mode)
   const filteredCurrentEtfs = useMemo(() => {
-    // If historical dates are not loaded/configured, fall back to global prop
     if (chronologicalDates.length === 0) {
       return etfs;
     }
@@ -177,10 +184,10 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
     });
   }, [currentRawEtfs, localStatus, etfs, chronologicalDates]);
 
-  // Process D3 bubble data
+  // Process D3 bubble data (Only compute diffs and use historical data in Animate Mode)
   const bubbleData = useBubbleData(
-    filteredCurrentEtfs,
-    chronologicalDates.length > 0 ? previousRawEtfs : []
+    isAnimateMode ? filteredCurrentEtfs : etfs,
+    isAnimateMode && chronologicalDates.length > 0 ? previousRawEtfs : []
   );
 
   return (
@@ -206,9 +213,24 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
 
         {/* Header Controls (Toggles & Hide button) */}
         <div className="flex items-center gap-3.5 self-end sm:self-auto flex-wrap">
-          {/* Isolated Pass/All Toggle */}
-          {chronologicalDates.length > 0 && !isCollapsed && (
-            <div className="flex bg-slate-900/90 p-0.5 rounded-xl border border-slate-800 shadow-inner">
+          {/* Animate Mode Toggle Button */}
+          {!isCollapsed && chronologicalDates.length > 0 && (
+            <button
+              onClick={() => setIsAnimateMode(!isAnimateMode)}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl border transition-all duration-200 cursor-pointer ${
+                isAnimateMode
+                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-650/30'
+                  : 'text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-750 border-slate-700/60'
+              }`}
+            >
+              <Activity className="w-3.5 h-3.5 text-indigo-400" />
+              Animate History
+            </button>
+          )}
+
+          {/* Isolated Pass/All Toggle (Only in Animate Mode) */}
+          {isAnimateMode && chronologicalDates.length > 0 && !isCollapsed && (
+            <div className="flex bg-slate-900/90 p-0.5 rounded-xl border border-slate-800 shadow-inner animate-in fade-in slide-in-from-right-2 duration-200">
               <button
                 onClick={() => setLocalStatus('Passed')}
                 className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
@@ -255,12 +277,12 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
       {/* Main D3 Canvas & Legend */}
       {!isCollapsed && (
         <div className="transition-all duration-500 ease-in-out opacity-100 mt-2">
-          {isLoading ? (
+          {isLoading && isAnimateMode ? (
             <div className="h-[560px] flex flex-col items-center justify-center text-slate-400 text-sm gap-3 bg-slate-950/40 rounded-xl border border-slate-900/60 shadow-inner">
               <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
               <span className="font-semibold tracking-wide animate-pulse">Loading concentration data...</span>
             </div>
-          ) : error ? (
+          ) : error && isAnimateMode ? (
             <div className="h-[560px] flex flex-col items-center justify-center text-rose-400 text-sm gap-2 bg-slate-950/40 rounded-xl border border-slate-900/60 p-6 text-center shadow-inner">
               <span className="font-bold">Error Loading Data</span>
               <p className="text-xs text-rose-300/80 max-w-md">{error}</p>
@@ -273,9 +295,9 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
             <BubbleCanvas data={bubbleData} />
           )}
 
-          {/* Chronological Date Slider timeline controls */}
-          {chronologicalDates.length > 1 && !isLoading && !error && (
-            <div className="mt-6 p-4 bg-slate-900/40 border border-slate-900/60 rounded-xl flex items-center gap-4 shadow-inner">
+          {/* Chronological Date Slider timeline controls (Only in Animate Mode) */}
+          {isAnimateMode && chronologicalDates.length > 1 && !isLoading && !error && (
+            <div className="mt-6 p-4 bg-slate-900/40 border border-slate-900/60 rounded-xl flex items-center gap-4 shadow-inner animate-in fade-in slide-in-from-bottom-2 duration-300">
               {/* Play/Pause Button */}
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
@@ -289,7 +311,7 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
               <div className="flex-1 w-full flex flex-col gap-1.5">
                 <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1">
                   <span>{chronologicalDates[0]}</span>
-                  <span className="text-indigo-450 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 font-mono text-xs">
+                  <span className="text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 font-mono text-xs">
                     {localDate}
                   </span>
                   <span>{chronologicalDates[chronologicalDates.length - 1]}</span>
@@ -306,7 +328,7 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
             </div>
           )}
 
-          <Legend />
+          <Legend isAnimateMode={isAnimateMode} />
         </div>
       )}
     </div>

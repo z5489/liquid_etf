@@ -7,6 +7,7 @@ All notable changes to this project are documented below. This project follows g
 ## [Unreleased] - 2026-06-09
 
 ### Added
+- **Animate History Toggle Button**: Added a toggle button in the card header. Animate Mode is disabled by default, keeping the map exactly as it was originally (synced with global table filters). Clicking "Animate History" reveals the timeline and comparison indicators.
 - **Timeline Date Slider**: Chronological slider timeline at the bottom of the Sector & Holding Concentration Map to browse historical data.
 - **Autoplay Timeline Loop**: Auto-play control (play/pause buttons) to automatically cycle through available dates every 1.5 seconds.
 - **Isolated Status Filter**: Segmented pill toggle button in the card header for switching between **Passed Only** and **All Statuses** independently of the main dashboard table.
@@ -15,6 +16,7 @@ All notable changes to this project are documented below. This project follows g
   - *Yesterday Smaller (Grew Today)*: Renders a dashed inner ring (translucent white) representing the previous day's smaller volume.
 - **Size Change Legend**: Dual-column sub-legend added explaining the concentric dashed line visual cues.
 - **Data Caching**: Caching structure (`cacheRef`) inside the component so that sliding back and forth between dates loads data instantly.
+
 
 ---
 

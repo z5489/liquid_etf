@@ -107,15 +107,20 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
 
     let isCancelled = false;
 
+    // Determine if we need to show the loading overlay (i.e. data not cached)
+    const idx = chronologicalDates.indexOf(localDate);
+    const prevDate = idx > 0 ? chronologicalDates[idx - 1] : null;
+    const isCurrentCached = !!cacheRef.current[localDate];
+    const isPrevCached = !prevDate || !!cacheRef.current[prevDate];
+    const needsLoading = !isCurrentCached || !isPrevCached;
+
     const fetchData = async () => {
-      setIsLoading(true);
+      if (needsLoading) {
+        setIsLoading(true);
+      }
       setError(null);
       try {
         const currentData = await getETFDataForDate(localDate);
-        
-        // Find previous date
-        const idx = chronologicalDates.indexOf(localDate);
-        const prevDate = idx > 0 ? chronologicalDates[idx - 1] : null;
         
         let prevData = [];
         if (prevDate) {
@@ -296,23 +301,29 @@ export default function BubbleChartPanel({ etfs = [], availableDates = [], excel
       {/* Main D3 Canvas & Legend */}
       {!isCollapsed && (
         <div className="transition-all duration-500 ease-in-out opacity-100 mt-2">
-          {isLoading && isAnimateMode ? (
-            <div className="h-[560px] flex flex-col items-center justify-center text-slate-400 text-sm gap-3 bg-slate-950/40 rounded-xl border border-slate-900/60 shadow-inner">
-              <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-              <span className="font-semibold tracking-wide animate-pulse">Loading concentration data...</span>
-            </div>
-          ) : error && isAnimateMode ? (
-            <div className="h-[560px] flex flex-col items-center justify-center text-rose-400 text-sm gap-2 bg-slate-950/40 rounded-xl border border-slate-900/60 p-6 text-center shadow-inner">
-              <span className="font-bold">Error Loading Data</span>
-              <p className="text-xs text-rose-300/80 max-w-md">{error}</p>
-            </div>
-          ) : bubbleData.length === 0 ? (
-            <div className="h-[560px] flex items-center justify-center text-slate-500 text-sm bg-slate-950/40 rounded-xl border border-slate-900/60 shadow-inner">
-              No data available for visualization matching the current filters.
-            </div>
-          ) : (
-            <BubbleCanvas data={bubbleData} />
-          )}
+          <div className="relative">
+            {bubbleData.length === 0 && !isLoading ? (
+              <div className="h-[560px] flex items-center justify-center text-slate-500 text-sm bg-slate-950/40 rounded-xl border border-slate-900/60 shadow-inner">
+                No data available for visualization matching the current filters.
+              </div>
+            ) : (
+              <BubbleCanvas data={bubbleData} />
+            )}
+
+            {isLoading && isAnimateMode && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-sm gap-3 bg-slate-950/70 rounded-xl border border-slate-900/60 shadow-inner z-20 backdrop-blur-sm transition-all duration-300 animate-in fade-in">
+                <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+                <span className="font-semibold tracking-wide animate-pulse">Loading concentration data...</span>
+              </div>
+            )}
+
+            {error && isAnimateMode && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-rose-400 text-sm gap-2 bg-slate-950/90 rounded-xl border border-slate-900/60 p-6 text-center shadow-inner z-20 animate-in fade-in">
+                <span className="font-bold">Error Loading Data</span>
+                <p className="text-xs text-rose-300/80 max-w-md">{error}</p>
+              </div>
+            )}
+          </div>
 
           {/* Chronological Date Slider timeline controls (Only in Animate Mode) */}
           {isAnimateMode && chronologicalDates.length > 1 && !isLoading && !error && (

@@ -8,7 +8,6 @@ export default function BubbleCanvas({ data }) {
   const [hoveredNode, setHoveredNode] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0, showBelow: false });
   const [dimensions, setDimensions] = useState({ width: 960, height: 560, isMobile: false });
-  const nodePositionsRef = useRef({});
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -147,7 +146,7 @@ export default function BubbleCanvas({ data }) {
       .domain([minVol, maxVol])
       .range([18, 56]);
 
-    // Attach radius and initial/cached coordinates to each node
+    // Attach radius and initial coordinates to each node
     nodes.forEach(d => {
       d.r = radiusScale(d.dollarVolume);
       
@@ -158,15 +157,8 @@ export default function BubbleCanvas({ data }) {
         d.rPrev = 0;
       }
 
-      // Check if we have cached position and velocity for this node
-      const cached = nodePositionsRef.current[d.id];
-      if (cached) {
-        d.x = cached.x;
-        d.y = cached.y;
-        d.vx = cached.vx;
-        d.vy = cached.vy;
-      } else {
-        // Initialize x and y near the centroid to avoid force explosion
+      // Initialize x and y near the centroid to avoid force explosion
+      if (d.x === undefined || d.y === undefined) {
         if (!isMobile) {
           d.x = d.category === 'Technology' || d.category === 'Energy & Industrials' ? width / 4 : (3 * width) / 4;
           d.y = d.category === 'Technology' || d.category === 'Financials & Macro' ? height / 4 : (3 * height) / 4;
@@ -250,174 +242,122 @@ export default function BubbleCanvas({ data }) {
 
     const svg = d3.select(svgRef.current);
     
-    // Select or create Node container
-    let nodeGroup = svg.select('.node-group');
-    if (nodeGroup.empty()) {
-      nodeGroup = svg.append('g').attr('class', 'node-group');
-    }
+    // Clear any previous nodes
+    svg.selectAll('.node-group').remove();
 
-    // Create selection with D3 .join() pattern
+    // Node container
+    const nodeGroup = svg.append('g').attr('class', 'node-group');
+
+    // Create selection
     const nodeSelection = nodeGroup.selectAll('.node')
       .data(nodes, d => d.id)
-      .join(
-        enter => {
-          const g = enter.append('g')
-            .attr('class', 'node')
-            .style('cursor', 'pointer')
-            .attr('opacity', 0); // start transparent
+      .enter()
+      .append('g')
+      .attr('class', 'node')
+      .style('cursor', 'pointer')
+      .on('mouseenter', (event, d) => {
+        setHoveredNode(d);
+        const showBelow = d.y - d.r - 180 < 0;
+        const clampedX = Math.max(136, Math.min(width - 136, d.x));
+        setTooltipPos({ 
+          x: clampedX, 
+          y: showBelow ? d.y + d.r + 10 : d.y - d.r - 10,
+          showBelow 
+        });
+      })
+      .on('mousemove', (event, d) => {
+        const showBelow = d.y - d.r - 180 < 0;
+        const clampedX = Math.max(136, Math.min(width - 136, d.x));
+        setTooltipPos({ 
+          x: clampedX, 
+          y: showBelow ? d.y + d.r + 10 : d.y - d.r - 10,
+          showBelow 
+        });
+      })
+      .on('mouseleave', () => {
+        setHoveredNode(null);
+      });
 
-          // Set up hover event listeners once on enter
-          g.on('mouseenter', (event, d) => {
-            setHoveredNode(d);
-            const showBelow = d.y - d.r - 180 < 0;
-            const clampedX = Math.max(136, Math.min(width - 136, d.x));
-            setTooltipPos({ 
-              x: clampedX, 
-              y: showBelow ? d.y + d.r + 10 : d.y - d.r - 10,
-              showBelow 
-            });
-          })
-          .on('mousemove', (event, d) => {
-            const showBelow = d.y - d.r - 180 < 0;
-            const clampedX = Math.max(136, Math.min(width - 136, d.x));
-            setTooltipPos({ 
-              x: clampedX, 
-              y: showBelow ? d.y + d.r + 10 : d.y - d.r - 10,
-              showBelow 
-            });
-          })
-          .on('mouseleave', () => {
-            setHoveredNode(null);
-          });
-
-          // Append circles (initial radius 0 for smooth pop-in transition)
-          g.append('circle')
-            .attr('class', 'main-circle')
-            .attr('r', 0)
-            .attr('fill', d => getColor(d.changePct))
-            .attr('stroke', '#1e293b')
-            .attr('stroke-width', '1.5px')
-            .attr('opacity', 0.85)
-            .style('transition', 'stroke 0.2s, opacity 0.2s')
-            .on('mouseover', function() {
-              d3.select(this)
-                .attr('opacity', 1.0)
-                .attr('stroke', '#818cf8')
-                .attr('stroke-width', '3px');
-            })
-            .on('mouseout', function() {
-              d3.select(this)
-                .attr('opacity', 0.85)
-                .attr('stroke', '#1e293b')
-                .attr('stroke-width', '1.5px');
-            });
-
-          // Append previous size dashed circle if available
-          g.append('circle')
-            .attr('class', 'prev-circle')
-            .attr('r', 0)
-            .attr('fill', 'none')
-            .attr('stroke', d => d.rPrev > d.r ? '#a5b4fc' : 'rgba(255, 255, 255, 0.45)')
-            .attr('stroke-width', d => d.rPrev > d.r ? '1.5px' : '1.2px')
-            .attr('stroke-dasharray', '3,3')
-            .attr('opacity', 0)
-            .attr('pointer-events', 'none');
-
-          // Add Ticker label (Line 1)
-          g.append('text')
-            .attr('class', 'ticker-label')
-            .attr('text-anchor', 'middle')
-            .attr('fill', 'white')
-            .attr('font-weight', '900')
-            .attr('pointer-events', 'none');
-
-          // Add Keyword sub-label (Line 2)
-          g.append('text')
-            .attr('class', 'keyword-label')
-            .attr('text-anchor', 'middle')
-            .attr('fill', '#cbd5e1')
-            .attr('font-weight', '500')
-            .attr('pointer-events', 'none');
-
-          // Add Change % label (Line 3)
-          g.append('text')
-            .attr('class', 'change-label')
-            .attr('text-anchor', 'middle')
-            .attr('fill', '#f8fafc')
-            .attr('font-weight', '700')
-            .attr('pointer-events', 'none');
-
-          // Add Volume label (Line 4)
-          g.append('text')
-            .attr('class', 'volume-label')
-            .attr('text-anchor', 'middle')
-            .attr('fill', '#94a3b8')
-            .attr('font-family', 'monospace')
-            .attr('pointer-events', 'none');
-
-          return g;
-        },
-        update => update,
-        exit => exit.transition().duration(250).attr('opacity', 0).remove()
-      );
-
-    // Fade in / stabilize the main selection opacity
-    nodeSelection.transition().duration(250).attr('opacity', 1);
-
-    // Update main circles with transition
-    nodeSelection.select('.main-circle')
-      .transition()
-      .duration(300)
+    // Append circles
+    nodeSelection.append('circle')
       .attr('r', d => d.r)
-      .attr('fill', d => getColor(d.changePct));
+      .attr('fill', d => getColor(d.changePct))
+      .attr('stroke', '#1e293b')
+      .attr('stroke-width', '1.5px')
+      .attr('opacity', 0.85)
+      .style('transition', 'stroke 0.2s, opacity 0.2s')
+      .on('mouseover', function() {
+        d3.select(this)
+          .attr('opacity', 1.0)
+          .attr('stroke', '#818cf8')
+          .attr('stroke-width', '3px');
+      })
+      .on('mouseout', function() {
+        d3.select(this)
+          .attr('opacity', 0.85)
+          .attr('stroke', '#1e293b')
+          .attr('stroke-width', '1.5px');
+      });
 
-    // Update previous size circles with transition
-    nodeSelection.select('.prev-circle')
-      .transition()
-      .duration(300)
+    // Append previous size dashed circle if available
+    nodeSelection.filter(d => d.rPrev && d.rPrev > 0)
+      .append('circle')
       .attr('r', d => d.rPrev)
-      .attr('stroke', d => d.rPrev > d.r ? '#a5b4fc' : 'rgba(255, 255, 255, 0.45)')
+      .attr('fill', 'none')
+      .attr('stroke', d => d.rPrev > d.r ? '#a5b4fc' : 'rgba(255, 255, 255, 0.45)') // light indigo if yesterday was larger, white if yesterday was smaller
       .attr('stroke-width', d => d.rPrev > d.r ? '1.5px' : '1.2px')
-      .attr('opacity', d => d.rPrev > 0 ? (d.rPrev > d.r ? 0.75 : 0.5) : 0);
+      .attr('stroke-dasharray', '3,3')
+      .attr('opacity', d => d.rPrev > d.r ? 0.75 : 0.5)
+      .attr('pointer-events', 'none');
 
-    // Update Ticker label
-    nodeSelection.select('.ticker-label')
-      .text(d => d.ticker)
-      .transition()
-      .duration(300)
+    // Add Ticker label (Line 1)
+    nodeSelection.append('text')
       .attr('dy', d => d.r >= 38 ? '-10' : d.r >= 28 ? '-2' : '3')
-      .attr('font-size', d => d.r >= 38 ? '12px' : '9px');
+      .attr('text-anchor', 'middle')
+      .attr('fill', 'white')
+      .attr('font-size', d => d.r >= 38 ? '12px' : '9px')
+      .attr('font-weight', '900') // extra bold for ticker
+      .attr('pointer-events', 'none')
+      .text(d => d.ticker);
 
-    // Update Keyword sub-label
-    nodeSelection.select('.keyword-label')
+    // Add Keyword sub-label (Line 2)
+    nodeSelection.filter(d => d.r >= 28)
+      .append('text')
+      .attr('dy', d => d.r >= 38 ? '2' : '8')
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#cbd5e1')
+      .attr('font-size', d => d.r >= 38 ? '8.5px' : '7.5px')
+      .attr('font-weight', '500')
+      .attr('pointer-events', 'none')
       .text(d => {
-        if (d.r < 28) return '';
         const maxChars = Math.max(5, Math.floor(d.r / 3.5));
         if (d.keyword.length > maxChars) {
           return d.keyword.substring(0, maxChars - 1) + '..';
         }
         return d.keyword;
-      })
-      .transition()
-      .duration(300)
-      .attr('dy', d => d.r >= 38 ? '2' : '8')
-      .attr('font-size', d => d.r >= 38 ? '8.5px' : '7.5px');
+      });
 
-    // Update Change % label
-    nodeSelection.select('.change-label')
-      .text(d => d.r >= 38 ? `${d.changePct > 0 ? '+' : ''}${d.changePct.toFixed(2)}%` : '')
-      .transition()
-      .duration(300)
+    // Add Change % label (Line 3)
+    nodeSelection.filter(d => d.r >= 38)
+      .append('text')
       .attr('dy', '12')
-      .attr('font-size', '8.5px');
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#f8fafc')
+      .attr('font-size', '8.5px')
+      .attr('font-weight', '700')
+      .attr('pointer-events', 'none')
+      .text(d => `${d.changePct > 0 ? '+' : ''}${d.changePct.toFixed(2)}%`);
 
-    // Update Volume label
-    nodeSelection.select('.volume-label')
-      .text(d => d.r >= 48 ? `$${(d.dollarVolume / 1e9).toFixed(1)}B` : '')
-      .transition()
-      .duration(300)
+    // Add Volume label (Line 4)
+    nodeSelection.filter(d => d.r >= 48)
+      .append('text')
       .attr('dy', '22')
-      .attr('font-size', '8px');
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#94a3b8')
+      .attr('font-size', '8px')
+      .attr('font-family', 'monospace')
+      .attr('pointer-events', 'none')
+      .text(d => `$${(d.dollarVolume / 1e9).toFixed(1)}B`);
 
     // Update positions during ticks
     simulation.on('tick', () => {
@@ -427,10 +367,6 @@ export default function BubbleCanvas({ data }) {
         const maxRadius = Math.max(d.r, d.rPrev || 0);
         d.x = Math.max(bounds.xMin + maxRadius + padding, Math.min(bounds.xMax - maxRadius - padding, d.x));
         d.y = Math.max(bounds.yMin + maxRadius + padding, Math.min(bounds.yMax - maxRadius - padding, d.y));
-        
-        // Cache current coordinates and velocities
-        nodePositionsRef.current[d.id] = { x: d.x, y: d.y, vx: d.vx, vy: d.vy };
-        
         return `translate(${d.x}, ${d.y})`;
       });
     });

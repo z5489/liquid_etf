@@ -4,6 +4,7 @@ import Toolbar from './components/Toolbar';
 import ETFTable from './components/ETFTable';
 import DetailDrawer from './components/DetailDrawer';
 import BubbleChartPanel from './components/BubbleChartPanel';
+import ETFHistoryPanel from './components/ETFHistoryPanel';
 import { Activity, ShieldAlert, Sparkles, Clock } from 'lucide-react';
 
 export default function App() {
@@ -367,6 +368,13 @@ export default function App() {
             {/* Bubble Chart Concentration Panel */}
             <BubbleChartPanel
               etfs={sortedETFs}
+              availableDates={availableDates}
+              excelUrl={excelUrl}
+            />
+
+            {/* ETF History Comparison Panel */}
+            <ETFHistoryPanel
+              etfs={etfs}
               availableDates={availableDates}
               excelUrl={excelUrl}
             />

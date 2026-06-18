@@ -4,6 +4,20 @@ All notable changes to this project are documented below. This project follows g
 
 ---
 
+## [Released] - 2026-06-18
+
+### Added
+- **Fund Size & Flow History Comparison Section**:
+  - Background asynchronous loader to fetch and parse all historical CSV files sequentially on panel load.
+  - Custom search multi-select dropdown with checkboxes, pill chips for active selections, "Reset to Defaults" (preselects top 20), and "Clear All" controls.
+  - SVG timeline grid charting date columns (oldest to newest) against selected ETF rows.
+  - Proportional size scaling for bubbles representing AUM or Dollar Volume.
+  - Diverging color scaling representing 1-day change, 1-week performance, or 1-month fund flow.
+  - Dynamic responsive timeline stretching utilizing a `ResizeObserver`, adapting columns to fit 100% of the container width and eliminating the right-side gap.
+  - Floating interactive hover tooltips displaying full asset profile details for the selected date.
+
+---
+
 ## [Unreleased] - 2026-06-09
 
 ### Added

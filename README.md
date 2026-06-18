@@ -35,6 +35,7 @@ An automated ETF screening and monitoring system. It downloads metadata and dail
 │  ┌──────────────────────────────────────────────────┐   │
 │  │  Loads etf_momentum.csv on page load + Refresh  │   │
 │  │  Ranked table (Change% desc, filterable/sortable)│   │
+│  │  Bubble chart history comparison (AUM/Vol/Flows) │   │
 │  │  Row click → detail drawer                       │   │
 │  │  Export to CSV                                   │   │
 │  └──────────────────────────────────────────────────┘   │
@@ -73,7 +74,8 @@ etf-momentum-tracker/
 │   │   └── components/
 │   │       ├── ETFTable.jsx     # Ranked, sortable & filterable ETF table
 │   │       ├── DetailDrawer.jsx # Slide-out drawer displaying profile details
-│   │       └── Toolbar.jsx      # Controls: search, drop filters, download CSV
+│   │       ├── Toolbar.jsx      # Controls: search, drop filters, download CSV
+│   │       └── ETFHistoryPanel.jsx # Fund size and flow history timeline grid
 │   ├── tailwind.config.js       # Tailwind configuration
 │   ├── postcss.config.js        # PostCSS configuration (Tailwind v4 PostCSS integration)
 │   ├── package.json             # NPM project definitions

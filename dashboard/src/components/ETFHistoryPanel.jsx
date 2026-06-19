@@ -9,6 +9,7 @@ export default function ETFHistoryPanel({ etfs = [], availableDates = [], excelU
   const [loadedCount, setLoadedCount] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownSearch, setDropdownSearch] = useState('');
+  const [prevEtfs, setPrevEtfs] = useState(null);
   
   // Customization states
   const [sizeMetric, setSizeMetric] = useState('AUM'); // 'AUM' | 'DollarVolume'
@@ -37,17 +38,19 @@ export default function ETFHistoryPanel({ etfs = [], availableDates = [], excelU
     return [...availableDates].reverse();
   }, [availableDates]);
 
-  // Set default selected ETFs (top 20 by volume from active list)
-  useEffect(() => {
-    if (etfs.length > 0 && selectedTickers.length === 0) {
-      // Find top 20 distinct tickers with positive volume
-      const topTickers = etfs
-        .filter(e => e.Ticker && (e.DollarVolume > 0 || e.AUM > 0))
-        .slice(0, 20)
-        .map(e => e.Ticker);
+  // Set default selected ETFs (top 20 by dollar volume from active list)
+  if (etfs !== prevEtfs) {
+    setPrevEtfs(etfs);
+    if (etfs.length > 0) {
+      const topTickers = [...etfs]
+        .filter(e => e.Ticker && e.DollarVolume > 0)
+        .sort((a, b) => b.DollarVolume - a.DollarVolume)
+        .map(e => e.Ticker)
+        .filter((ticker, index, self) => self.indexOf(ticker) === index)
+        .slice(0, 20);
       setSelectedTickers(topTickers);
     }
-  }, [etfs, selectedTickers]);
+  }
 
   // Handle click outside dropdown to close it
   useEffect(() => {
@@ -186,10 +189,12 @@ export default function ETFHistoryPanel({ etfs = [], availableDates = [], excelU
   };
 
   const handleSelectDefaults = () => {
-    const topTickers = etfs
-      .filter(e => e.Ticker && (e.DollarVolume > 0 || e.AUM > 0))
-      .slice(0, 20)
-      .map(e => e.Ticker);
+    const topTickers = [...etfs]
+      .filter(e => e.Ticker && e.DollarVolume > 0)
+      .sort((a, b) => b.DollarVolume - a.DollarVolume)
+      .map(e => e.Ticker)
+      .filter((ticker, index, self) => self.indexOf(ticker) === index)
+      .slice(0, 20);
     setSelectedTickers(topTickers);
   };
 
